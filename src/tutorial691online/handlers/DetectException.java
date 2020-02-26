@@ -5,10 +5,11 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jdt.core.JavaModelException;
-
 import tutorial691online.patterns.DestructiveWrappingFinder;
 import tutorial691online.patterns.ExceptionFinder;
 import tutorial691online.patterns.OverCatchFinder;
+
+import tutorial691online.patterns.NestedTryFinder;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -27,6 +28,7 @@ public class DetectException extends AbstractHandler {
 		detectInProjects(projects);
 		
 		SampleHandler.printMessage("DONE DETECTING");
+		System.out.println("DONE DETECTING");
 		
 		return null;
 	}
@@ -36,18 +38,26 @@ public class DetectException extends AbstractHandler {
 			SampleHandler.printMessage("DETECTING IN: " + project.getName());
 			DestructiveWrappingFinder destructiveWrapping = new DestructiveWrappingFinder();
 			//OverCatchFinder overCatchFinder = new OverCatchFinder();
+			NestedTryFinder nestedTry = new NestedTryFinder();
 			
 			try {
 				// find the exceptions and print the methods that contain the exceptions
+				//destructiveWrapping.findExceptions(project);
+//				destructiveWrapping.printExceptions();	
 				
-				destructiveWrapping.findExceptions(project);
-				destructiveWrapping.printExceptions();	
+//				destructiveWrapping.findExceptions(project);
+//				destructiveWrapping.printExceptions();	
 				
-				//overCatchFinder.findExceptions(project);
+// 				overCatchFinder.findExceptions(project);
+//				overCatchFinder.findExceptions(project);
+				nestedTry.findExceptions(project);
+				nestedTry.printExceptions();
 				
+	
 			} catch (JavaModelException e) {
 				e.printStackTrace();
-			}	
+			}
+			
 	}
 	}
 }
