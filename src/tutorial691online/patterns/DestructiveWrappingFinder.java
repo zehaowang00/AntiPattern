@@ -3,8 +3,11 @@ package tutorial691online.patterns;
 import java.util.HashMap;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaModel;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
@@ -29,6 +32,13 @@ HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
 	}
 	
 	private void findTargetCatchWithThrow(IPackageFragment packageFragment) throws JavaModelException {
+		// The if block will parse the binary files from jar and etc.
+		if (packageFragment.getKind() == IPackageFragmentRoot.K_BINARY) {
+			for (IClassFile icf : packageFragment.getAllClassFiles()) {
+				CompilationUnit parsedCompilationUnit = parse(icf);
+				System.out.println(parsedCompilationUnit);
+			}
+		}
 		for (ICompilationUnit unit : packageFragment.getCompilationUnits()) {
 			CompilationUnit parsedCompilationUnit = parse(unit);
 			
@@ -72,6 +82,16 @@ HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
 		}
 	}
 	
+	public static CompilationUnit parse(IClassFile icf) {
+		@SuppressWarnings("deprecation")
+		ASTParser parser = ASTParser.newParser(AST.JLS8);
+		parser.setKind(ASTParser.K_COMPILATION_UNIT);
+		parser.setSource(icf);
+		parser.setResolveBindings(true);
+		parser.setBindingsRecovery(true);
+		parser.setStatementsRecovery(true);
+		return (CompilationUnit) parser.createAST(null); // parse
+	}
 	public static CompilationUnit parse(ICompilationUnit unit) {
 		@SuppressWarnings("deprecation")
 		ASTParser parser = ASTParser.newParser(AST.JLS8);
