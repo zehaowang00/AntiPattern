@@ -30,13 +30,20 @@ HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
 	}
 	
 	private void findTargetCatchClauses(IPackageFragment packageFragment) throws JavaModelException {
+		ExceptionMethodVistor exceptionMethodVistor = new ExceptionMethodVistor();
 		for (ICompilationUnit unit : packageFragment.getCompilationUnits()) {
 			CompilationUnit parsedCompilationUnit = parse(unit);
 			
 			//do method visit here and check stuff
-			ExceptionMethodVistor exceptionMethodVistor = new ExceptionMethodVistor();
-			OverCatchVisitor exceptionVisitor = new OverCatchVisitor();
 			parsedCompilationUnit.accept(exceptionMethodVistor);
+            
+			//getMethodsWithTargetCatchClauses(exceptionVisitor);
+		}
+		for (ICompilationUnit unit : packageFragment.getCompilationUnits()) {
+			CompilationUnit parsedCompilationUnit = parse(unit);
+			
+			//do method visit here and check stuff
+			OverCatchVisitor exceptionVisitor = new OverCatchVisitor();
 			exceptionVisitor.setExceptionType(exceptionMethodVistor.getExceptionType());
 			parsedCompilationUnit.accept(exceptionVisitor);
             
