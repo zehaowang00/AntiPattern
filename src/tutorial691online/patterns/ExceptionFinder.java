@@ -11,7 +11,7 @@ import tutorial691online.visitors.CatchClauseVisitor;
 import org.eclipse.jdt.core.*;
 import org.eclipse.jdt.core.dom.*;
 
-public class ExceptionFinder {
+public class ExceptionFinder extends AbstractFinder {
 	HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
 	
 	public void findExceptions(IProject project) throws JavaModelException {
@@ -67,16 +67,5 @@ public class ExceptionFinder {
 			SampleHandler.printMessage(String.format("The following method suffers from the %s pattern", type));
 			SampleHandler.printMessage(declaration.toString());
 		}
-	}
-	
-	public static CompilationUnit parse(ICompilationUnit unit) {
-		@SuppressWarnings("deprecation")
-		ASTParser parser = ASTParser.newParser(AST.JLS8);
-		parser.setKind(ASTParser.K_COMPILATION_UNIT);
-		parser.setSource(unit);
-		parser.setResolveBindings(true);
-		parser.setBindingsRecovery(true);
-		parser.setStatementsRecovery(true);
-		return (CompilationUnit) parser.createAST(null); // parse
 	}
 }
