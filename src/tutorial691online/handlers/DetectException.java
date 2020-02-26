@@ -34,15 +34,16 @@ public class DetectException extends AbstractHandler {
 	private void detectInProjects(IProject[] projects) {
 		for(IProject project : projects) {
 			SampleHandler.printMessage("DETECTING IN: " + project.getName());
-			//DestructiveWrappingFinder destructiveWrapping = new DestructiveWrappingFinder();
-			OverCatchFinder overCatchFinder = new OverCatchFinder();
+			DestructiveWrappingFinder destructiveWrapping = new DestructiveWrappingFinder();
+			//OverCatchFinder overCatchFinder = new OverCatchFinder();
 			
 			try {
 				// find the exceptions and print the methods that contain the exceptions
-				//destructiveWrapping.findExceptions(project);
-				//destructiveWrapping.printExceptions();	
 				
-				overCatchFinder.findExceptions(project);
+				destructiveWrapping.findExceptions(project);
+				destructiveWrapping.printExceptions();	
+				
+				//overCatchFinder.findExceptions(project);
 				
 			} catch (JavaModelException e) {
 				e.printStackTrace();

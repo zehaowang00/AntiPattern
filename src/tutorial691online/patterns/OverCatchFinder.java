@@ -16,6 +16,7 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 import tutorial691online.handlers.SampleHandler;
 import tutorial691online.visitors.CatchClauseVisitor;
+import tutorial691online.visitors.ExceptionMethodVistor;
 import tutorial691online.visitors.OverCatchVisitor;
 
 public class OverCatchFinder {
@@ -33,7 +34,10 @@ HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
 			CompilationUnit parsedCompilationUnit = parse(unit);
 			
 			//do method visit here and check stuff
+			ExceptionMethodVistor exceptionMethodVistor = new ExceptionMethodVistor();
 			OverCatchVisitor exceptionVisitor = new OverCatchVisitor();
+			parsedCompilationUnit.accept(exceptionMethodVistor);
+			exceptionVisitor.setExceptionType(exceptionMethodVistor.getExceptionType());
 			parsedCompilationUnit.accept(exceptionVisitor);
             
 			//getMethodsWithTargetCatchClauses(exceptionVisitor);
