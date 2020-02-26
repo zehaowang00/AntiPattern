@@ -8,6 +8,7 @@ import org.eclipse.jdt.core.JavaModelException;
 
 import tutorial691online.patterns.DestructiveWrappingFinder;
 import tutorial691online.patterns.ExceptionFinder;
+import tutorial691online.patterns.OverCatchFinder;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -33,12 +34,16 @@ public class DetectException extends AbstractHandler {
 	private void detectInProjects(IProject[] projects) {
 		for(IProject project : projects) {
 			SampleHandler.printMessage("DETECTING IN: " + project.getName());
-			DestructiveWrappingFinder destructiveWrapping = new DestructiveWrappingFinder();
+			//DestructiveWrappingFinder destructiveWrapping = new DestructiveWrappingFinder();
+			OverCatchFinder overCatchFinder = new OverCatchFinder();
 			
 			try {
 				// find the exceptions and print the methods that contain the exceptions
-				destructiveWrapping.findExceptions(project);
-				destructiveWrapping.printExceptions();		
+				//destructiveWrapping.findExceptions(project);
+				//destructiveWrapping.printExceptions();	
+				
+				overCatchFinder.findExceptions(project);
+				
 			} catch (JavaModelException e) {
 				e.printStackTrace();
 			}	
