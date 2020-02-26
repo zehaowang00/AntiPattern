@@ -13,6 +13,7 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.TryStatement;
+import org.omg.CORBA.portable.ValueBase;
 
 public class OverCatchVisitor extends ASTVisitor{
 	
@@ -28,7 +29,8 @@ public class OverCatchVisitor extends ASTVisitor{
 
 	@Override
 	public boolean visit(TryStatement node) {
-		List<String> differentException = new ArrayList<>();
+		List<String> differentException = new ArrayList<String>();
+		List<String> catchName = new ArrayList<String>();
 		List<?> catchBodys = node.catchClauses();
 		Iterator<?> iter=catchBodys.iterator();
 		while(iter.hasNext()){  
@@ -38,11 +40,25 @@ public class OverCatchVisitor extends ASTVisitor{
 		node.getBody().accept(new ASTVisitor() {
 			@Override
 			public boolean visit(MethodInvocation node) {
+				catchName.add(node.getName().toString());
 				// TODO Auto-generated method stub
 				return super.visit(node);
 			}
 		});
 		// TODO Auto-generated method stub
+		for(String s : differentException) {
+			System.out.println("This is exception in catch "+ s);
+		}
+		
+		for(String s: catchName) {
+			System.out.println("This is method invocation " + s);
+		}
+		
+		for(List<?> excetpion: exceptionType.values()) {
+			for(Object a: excetpion) {
+				System.out.print("this is in the method declearation type " + a.toString()+"-->");
+			}
+		}
 		return super.visit(node);
 	}
 	
