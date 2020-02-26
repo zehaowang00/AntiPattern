@@ -1,13 +1,10 @@
 package tutorial691online.visitors;
 
-
-
 import java.util.HashSet;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
 
 import org.eclipse.jdt.core.dom.TryStatement;
-
 
 public class TryStatementVisitor extends ASTVisitor{
 	private HashSet<TryStatement> nestedTry = new HashSet<>();
@@ -17,18 +14,17 @@ public class TryStatementVisitor extends ASTVisitor{
 			node.getBody().accept(new ASTVisitor() {
 				public boolean visit(TryStatement ts) {
 					if(ts.getBody()!=null) {
-						nestedTry.add(node);
-								
+						nestedTry.add(node);			
 					}	
-						return false;	
+					return false;	
 				}
 			});	
 			
 		}
 		return super.visit(node);
 	}
+
 	public HashSet<TryStatement> getNestedTry(){
 		return nestedTry;
 	}
-
 }

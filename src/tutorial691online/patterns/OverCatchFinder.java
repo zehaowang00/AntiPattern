@@ -11,11 +11,10 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 import tutorial691online.handlers.SampleHandler;
-import tutorial691online.visitors.ExceptionMethodVistor;
 import tutorial691online.visitors.OverCatchVisitor;
 
 public class OverCatchFinder extends AbstractFinder {
-HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
+	HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
 	
 	public void findExceptions(IProject project) throws JavaModelException {
 		IPackageFragment[] packages = JavaCore.create(project).getPackageFragments();
@@ -25,24 +24,11 @@ HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
 	}
 	
 	private void findTargetCatchClauses(IPackageFragment packageFragment) throws JavaModelException {
-		ExceptionMethodVistor exceptionMethodVistor = new ExceptionMethodVistor();
 		for (ICompilationUnit unit : packageFragment.getCompilationUnits()) {
 			CompilationUnit parsedCompilationUnit = parse(unit);
-			
-			//do method visit here and check stuff
-			parsedCompilationUnit.accept(exceptionMethodVistor);
-            
-			//getMethodsWithTargetCatchClauses(exceptionVisitor);
-		}
-		for (ICompilationUnit unit : packageFragment.getCompilationUnits()) {
-			CompilationUnit parsedCompilationUnit = parse(unit);
-			
-			//do method visit here and check stuff
-			OverCatchVisitor exceptionVisitor = new OverCatchVisitor();
-			exceptionVisitor.setExceptionType(exceptionMethodVistor.getExceptionType());
-			parsedCompilationUnit.accept(exceptionVisitor);
-            
-			//getMethodsWithTargetCatchClauses(exceptionVisitor);
+
+			OverCatchVisitor overCatchVisitor = new OverCatchVisitor();
+			parsedCompilationUnit.accept(overCatchVisitor);
 		}
 	}
 	
