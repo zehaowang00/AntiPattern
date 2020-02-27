@@ -93,6 +93,10 @@ public class OverCatchVisitor extends ASTVisitor{
 						CompilationUnit cu = AbstractFinder.parse(icu);
 						// TODO: find called methods and get all the throw Exception in method body
 						// Add the Exceptions to the set exceptionTypes
+						cu.findDeclaringNode(methodBinding);
+						ThrowVisitor checkThrowVisitor = new ThrowVisitor();
+						cu.accept(checkThrowVisitor);
+						
 					}
 				}
 				return super.visit(node);
