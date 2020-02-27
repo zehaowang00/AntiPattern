@@ -4,12 +4,17 @@ package tutorial691online.visitors;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CatchClause;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.TryStatement;
+
+import tutorial691online.patterns.AbstractFinder;
 
 public class OverCatchVisitor extends ASTVisitor{
 	
@@ -60,6 +65,9 @@ public class OverCatchVisitor extends ASTVisitor{
 	
 	// all possible thrown exceptions of the current try block
 	private Set<ITypeBinding> exceptionTypes = new HashSet<ITypeBinding>();
+	public final Set<ITypeBinding> getExceptionTypes() {
+		return exceptionTypes;
+	}
 
 	@Override
 	public boolean visit(CatchClause node) {
@@ -74,6 +82,18 @@ public class OverCatchVisitor extends ASTVisitor{
 				IMethodBinding methodBinding = node.resolveMethodBinding();
 				for(ITypeBinding typeBinding : methodBinding.getExceptionTypes()) {
 					exceptionTypes.add(typeBinding);
+				}
+				IMethod iMethod = (IMethod) methodBinding.getJavaElement();
+				
+				// only handle source file. ignore binary(.class) files
+				if (!iMethod.isBinary()) {
+					// refer to: https://stackoverflow.com/questions/47090784/how-to-get-astnode-definition-in-jdt
+					ICompilationUnit icu = iMethod.getCompilationUnit();
+					if (icu != null) {
+						CompilationUnit cu = AbstractFinder.parse(icu);
+						// TODO: find called methods and get all the throw Exception in method body
+						// Add the Exceptions to the set exceptionTypes
+					}
 				}
 				return super.visit(node);
 			}
