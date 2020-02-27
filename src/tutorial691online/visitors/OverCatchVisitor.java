@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -93,9 +94,9 @@ public class OverCatchVisitor extends ASTVisitor{
 						CompilationUnit cu = AbstractFinder.parse(icu);
 						// TODO: find called methods and get all the throw Exception in method body
 						// Add the Exceptions to the set exceptionTypes
-						cu.findDeclaringNode(methodBinding);
+						ASTNode methodNode = cu.findDeclaringNode(methodBinding.getKey());
 						ThrowVisitor checkThrowVisitor = new ThrowVisitor();
-						cu.accept(checkThrowVisitor);
+						methodNode.accept(checkThrowVisitor);
 						
 					}
 				}

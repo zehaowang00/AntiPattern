@@ -14,32 +14,22 @@ import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.TryStatement;
+import org.eclipse.jdt.core.dom.Type;
 
 import tutorial691online.patterns.AbstractFinder;
 
 public class ThrowVisitor extends ASTVisitor{
 	
-	HashSet<String> throwException = new HashSet<String>();
+	HashSet<Type> throwException = new HashSet<Type>();
 	
 	HashMap<MethodInvocation, HashSet<?>> methodWithException = new HashMap<MethodInvocation, HashSet<?>>();
 	
-	public HashSet<String> getThrowException() {
+	public HashSet<Type> getThrowException() {
 		return throwException;
-	}
-
-	public void setThrowException(HashSet<String> throwException) {
-		this.throwException = throwException;
-	}
-
-	public HashMap<MethodInvocation, HashSet<?>> getMethodWithException() {
-		return methodWithException;
-	}
-
-	public void setMethodWithException(HashMap<MethodInvocation, HashSet<?>> methodWithException) {
-		this.methodWithException = methodWithException;
 	}
 
 	@Override
@@ -47,8 +37,7 @@ public class ThrowVisitor extends ASTVisitor{
 		node.accept(new ASTVisitor() {
 			@Override
 			public boolean visit(ClassInstanceCreation cic) {
-				String exceptionInsatanceType = cic.getType().toString();
-				throwException.add(exceptionInsatanceType);
+				throwException.add(cic.getType());
 				// TODO Auto-generated method stub
 				return super.visit(node);
 			}
@@ -70,34 +59,39 @@ public class ThrowVisitor extends ASTVisitor{
 				CompilationUnit cu = AbstractFinder.parse(icu);
 				// TODO: find called methods and get all the throw Exception in method body
 				// Add the Exceptions to the set exceptionTypes
-				cu.findDeclaringNode(methodBinding);
-				cu.accept(visitor);
+				ASTNode methodNode = cu.findDeclaringNode(methodBinding.getKey());
+				methodNode.accept(visitor);
 				methodWithException.put(node, visitor.getThrowException());
 				
 				ASTNode nodeParent = node.getParent();
 				
 				///Check whether a method is in try block
-				while(!(nodeParent.toString().equalsIgnoreCase("trystatement") || 
-					  nodeParent.toString().equalsIgnoreCase("MethodDeclaration"))) {
-					
+				while(!(nodeParent.getNodeType() == ASTNode.METHOD_DECLARATION || nodeParent.getNodeType() == ASTNode.TRY_STATEMENT)) {
 					nodeParent = nodeParent.getParent();
 				}
 				
-				if(nodeParent.toString().equalsIgnoreCase("trystatement")) {
+				if(nodeParent.getNodeType() == ASTNode.TRY_STATEMENT) {
 					///to find out exception type in catch block 
 					TryStatement tryNode = (TryStatement) nodeParent;
 					List<?> catchBodys = tryNode.catchClauses();
 					Iterator<?> iter=catchBodys.iterator();
-					Set<String> differentException = new HashSet<String>();
-					while(iter.hasNext()){  
+					Set<Type> toBeResolved = new HashSet<Type>();
+					while(iter.hasNext()){
 			             CatchClause ca = (CatchClause) iter.next();
-			             differentException.add(ca.getException().getType().toString());
-			         }
-					
-				}
-				else if (nodeParent.toString().equalsIgnoreCase("MethodDeclaration")) {
+			             ITypeBinding catchedExceptionType = ca.getException().getType().resolveBinding();
+			             for (Type type : visitor.getThrowException()) {
+			            	 ITypeBinding thrownExceptionType = type.resolveBinding();
+			            	 if (thrownExceptionType.isSubTypeCompatible(catchedExceptionType)) {
+			            		 toBeResolved.add(ca.getException().getType());
+			            	 }
+			             }
+			        }
+					visitor.getThrowException().removeAll(toBeResolved);
+				} else if (nodeParent.toString().equalsIgnoreCase("MethodDeclaration")) {
 					//deem as not in try block
 				}
+				
+				this.throwException.addAll(visitor.getThrowException());
 			}
 		}
 		// TODO Auto-generated method stub
