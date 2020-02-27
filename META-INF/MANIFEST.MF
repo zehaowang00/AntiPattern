@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Tutorial691-online
-Bundle-SymbolicName: tutorial691-online;singleton:=true
+Bundle-SymbolicName: AntiPattern;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.core;bundle-version="3.19.0",

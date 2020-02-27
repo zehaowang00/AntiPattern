@@ -5,7 +5,7 @@ import java.util.HashMap;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.JavaModelException;
 
-import tutorial691online.handlers.SampleHandler;
+import tutorial691online.handlers.DetectException;
 import tutorial691online.visitors.CatchClauseVisitor;
 
 import org.eclipse.jdt.core.*;
@@ -64,8 +64,8 @@ public class ExceptionFinder extends AbstractFinder {
 	public void printExceptions() {
 		for(MethodDeclaration declaration : suspectMethods.keySet()) {
 			String type = suspectMethods.get(declaration);
-			SampleHandler.printMessage(String.format("The following method suffers from the %s pattern", type));
-			SampleHandler.printMessage(declaration.toString());
+			DetectException.printMessage(String.format("The following method suffers from the %s pattern", type));
+			DetectException.printMessage(declaration.toString());
 		}
 	}
 }

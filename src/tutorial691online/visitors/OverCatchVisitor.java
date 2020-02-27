@@ -83,10 +83,11 @@ public class OverCatchVisitor extends ASTVisitor{
 	public boolean visit(TryStatement node) {
 		MethodInvocationVisitor miv = new MethodInvocationVisitor();
 		node.getBody().accept(miv);
+		@SuppressWarnings("unchecked")
 		List<CatchClause> catches = node.catchClauses();
 		for (CatchClause cc : catches) {
 			String exName = cc.getException().getType().toString().intern();
-			if(!miv.thrownException.containsKey(exName) && this.exceptionTypes.contains(exName)) {
+			if(!miv.thrownException.containsKey(exName) && !this.exceptionTypes.contains(exName)) {
 				System.out.println(node);
 			}
 		}
@@ -109,8 +110,6 @@ public class OverCatchVisitor extends ASTVisitor{
 				ICompilationUnit icu = iMethod.getCompilationUnit();
 				if (icu != null) {
 					CompilationUnit cu = AbstractFinder.parse(icu);
-					// TODO: find called methods and get all the throw Exception in method body
-					// Add the Exceptions to the set exceptionTypes
 					ASTNode methodNode = cu.findDeclaringNode(methodBinding.getKey());
 					ThrowVisitor checkThrowVisitor = new ThrowVisitor();
 					methodNode.accept(checkThrowVisitor);

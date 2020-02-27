@@ -10,7 +10,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
-import tutorial691online.handlers.SampleHandler;
+import tutorial691online.handlers.DetectException;
 import tutorial691online.visitors.OverCatchVisitor;
 
 public class OverCatchFinder extends AbstractFinder {
@@ -39,8 +39,8 @@ public class OverCatchFinder extends AbstractFinder {
 	public void printExceptions() {
 		for(MethodDeclaration declaration : suspectMethods.keySet()) {
 			String type = suspectMethods.get(declaration);
-			SampleHandler.printMessage(String.format("The following method suffers from the %s pattern", type));
-			SampleHandler.printMessage(declaration.toString());
+			DetectException.printMessage(String.format("The following method suffers from the %s pattern", type));
+			DetectException.printMessage(declaration.toString());
 		}
 	}
 }
