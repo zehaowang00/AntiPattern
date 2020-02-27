@@ -1,6 +1,7 @@
 package tutorial691online.visitors;
 
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -68,8 +69,8 @@ public class OverCatchVisitor extends ASTVisitor{
 //	}
 	
 	// all possible thrown exceptions of the current try block
-	private Set<ITypeBinding> exceptionTypes = new HashSet<ITypeBinding>();
-	public final Set<ITypeBinding> getExceptionTypes() {
+	private Set<String> exceptionTypes = new HashSet<String>();
+	public final Set<String> getExceptionTypes() {
 		return exceptionTypes;
 	}
 
@@ -84,7 +85,8 @@ public class OverCatchVisitor extends ASTVisitor{
 		node.getBody().accept(miv);
 		List<CatchClause> catches = node.catchClauses();
 		for (CatchClause cc : catches) {
-			if(!miv.thrownException.containsKey(cc.getException().getType().toString().intern())) {
+			String exName = cc.getException().getType().toString().intern();
+			if(!miv.thrownException.containsKey(exName) && this.exceptionTypes.contains(exName)) {
 				System.out.println(node);
 			}
 		}
@@ -92,12 +94,12 @@ public class OverCatchVisitor extends ASTVisitor{
 	}
 	
 	class MethodInvocationVisitor extends ASTVisitor {
-		Map<String, Type> thrownException = null;
+		Map<String, Type> thrownException = new HashMap<String, Type>();
 		@Override
 		public boolean visit(MethodInvocation node) {
 			IMethodBinding methodBinding = node.resolveMethodBinding();
 			for(ITypeBinding typeBinding : methodBinding.getExceptionTypes()) {
-				exceptionTypes.add(typeBinding);
+				exceptionTypes.add(typeBinding.getName().intern());
 			}
 			IMethod iMethod = (IMethod) methodBinding.getJavaElement();
 			
@@ -112,7 +114,8 @@ public class OverCatchVisitor extends ASTVisitor{
 					ASTNode methodNode = cu.findDeclaringNode(methodBinding.getKey());
 					ThrowVisitor checkThrowVisitor = new ThrowVisitor();
 					methodNode.accept(checkThrowVisitor);
-					thrownException = checkThrowVisitor.getThrowException();
+					thrownException.putAll(checkThrowVisitor.throwException);
+					
 				}
 			}
 			return super.visit(node);
