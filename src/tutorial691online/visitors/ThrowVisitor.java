@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -24,11 +25,9 @@ import tutorial691online.patterns.AbstractFinder;
 
 public class ThrowVisitor extends ASTVisitor{
 	
-	HashSet<Type> throwException = new HashSet<Type>();
+	Map<String, Type> throwException = new HashMap<String, Type>();
 	
-	HashMap<MethodInvocation, HashSet<?>> methodWithException = new HashMap<MethodInvocation, HashSet<?>>();
-	
-	public HashSet<Type> getThrowException() {
+	public Map<String, Type> getThrowException() {
 		return throwException;
 	}
 
@@ -37,8 +36,7 @@ public class ThrowVisitor extends ASTVisitor{
 		node.accept(new ASTVisitor() {
 			@Override
 			public boolean visit(ClassInstanceCreation cic) {
-				throwException.add(cic.getType());
-				// TODO Auto-generated method stub
+				throwException.put(cic.getType().toString().intern(), cic.getType());
 				return super.visit(node);
 			}
 		});
@@ -61,7 +59,6 @@ public class ThrowVisitor extends ASTVisitor{
 				// Add the Exceptions to the set exceptionTypes
 				ASTNode methodNode = cu.findDeclaringNode(methodBinding.getKey());
 				methodNode.accept(visitor);
-				methodWithException.put(node, visitor.getThrowException());
 				
 				ASTNode nodeParent = node.getParent();
 				
@@ -75,28 +72,27 @@ public class ThrowVisitor extends ASTVisitor{
 					TryStatement tryNode = (TryStatement) nodeParent;
 					List<?> catchBodys = tryNode.catchClauses();
 					Iterator<?> iter=catchBodys.iterator();
-					Set<Type> toBeResolved = new HashSet<Type>();
+					Set<String> toBeResolved = new HashSet<String>();
 					while(iter.hasNext()){
 			             CatchClause ca = (CatchClause) iter.next();
 			             ITypeBinding catchedExceptionType = ca.getException().getType().resolveBinding();
-			             for (Type type : visitor.getThrowException()) {
-			            	 ITypeBinding thrownExceptionType = type.resolveBinding();
+			             for (String type : visitor.getThrowException().keySet()) {
+			            	 ITypeBinding thrownExceptionType = visitor.getThrowException().get(type).resolveBinding();
 			            	 if (thrownExceptionType.isSubTypeCompatible(catchedExceptionType)) {
-			            		 toBeResolved.add(ca.getException().getType());
+			            		 toBeResolved.add(ca.getException().getType().toString().intern());
 			            	 }
 			             }
 			        }
-					visitor.getThrowException().removeAll(toBeResolved);
+					for (String tbr : toBeResolved) {
+						visitor.getThrowException().remove(tbr.intern());
+					}
 				} else if (nodeParent.toString().equalsIgnoreCase("MethodDeclaration")) {
 					//deem as not in try block
 				}
-				
-				this.throwException.addAll(visitor.getThrowException());
+				this.throwException.putAll(visitor.getThrowException());
 			}
 		}
 		// TODO Auto-generated method stub
 		return super.visit(node);
 	}
-
-   
 }
