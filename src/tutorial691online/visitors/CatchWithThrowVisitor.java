@@ -33,9 +33,6 @@ public class CatchWithThrowVisitor extends ASTVisitor{
 					ts.accept(new ASTVisitor() {
 						public boolean visit(ClassInstanceCreation cic) {
 							String exceptionInstanceType = cic.getType().toString();
-							System.out.println("exceptionInstance1:"+exceptionInstanceType);
-							System.out.println("exceptionType1:"+exceptionType);
-							System.out.println("t or f:"+ exceptionInstanceType == exceptionType);
 							if (exceptionInstanceType.equals(exceptionType)) {
 								destuctiveWrapping.add(node);
 							}

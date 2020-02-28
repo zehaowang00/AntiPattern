@@ -1,24 +1,21 @@
 package tutorial691online.patterns;
 
-import java.util.HashMap;
-
 import org.eclipse.core.resources.IProject;
-import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-
-import tutorial691online.handlers.DetectException;
 import tutorial691online.visitors.CatchWithThrowVisitor;
 
 public class DestructiveWrappingFinder extends AbstractFinder {
-HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
+	
+	public DestructiveWrappingFinder() {
+		this.type = "DestuctiveWrapping";
+		this.visitor = new CatchWithThrowVisitor();
+	}
 	
 	public void findExceptions(IProject project) throws JavaModelException {
 		IPackageFragment[] packages = JavaCore.create(project).getPackageFragments();
@@ -28,53 +25,18 @@ HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
 	}
 	
 	private void findTargetCatchWithThrow(IPackageFragment packageFragment) throws JavaModelException {
-		// The if block will parse the binary files from jar and etc.
-		if (packageFragment.getKind() == IPackageFragmentRoot.K_BINARY) {
-			for (IClassFile icf : packageFragment.getAllClassFiles()) {
-				CompilationUnit parsedCompilationUnit = parse(icf);
-				System.out.println(parsedCompilationUnit);
-			}
-		}
 		for (ICompilationUnit unit : packageFragment.getCompilationUnits()) {
 			CompilationUnit parsedCompilationUnit = parse(unit);
 			
 			//do method visit here and check stuff
-			CatchWithThrowVisitor cwt = new CatchWithThrowVisitor();
-			parsedCompilationUnit.accept(cwt);
-
-			getMethodsWithTargetCatchClauses(cwt);
+			parsedCompilationUnit.accept(this.visitor);
+			getMethodsWithTargetCatchClauses(this.visitor);
 		}
 	}
 	
-	private void getMethodsWithTargetCatchClauses(CatchWithThrowVisitor cwt) {
-		System.out.println("len of destuctiveWrapping:"+cwt.getDestuctiveWrapping().size());
-		for(CatchClause destuctiveWrapping: cwt.getDestuctiveWrapping()) {
+	private void getMethodsWithTargetCatchClauses(ASTVisitor cwt) {
+		for(CatchClause destuctiveWrapping: ((CatchWithThrowVisitor)cwt).getDestuctiveWrapping()) {
 			suspectMethods.put(findMethodForCatch(destuctiveWrapping), "DestuctiveWrapping");
-		}	
-		
-	}
-	
-	private ASTNode findParentMethodDeclaration(ASTNode node) {
-		if(node.getParent().getNodeType() == ASTNode.METHOD_DECLARATION) {
-			return node.getParent();
-		} else {
-			return findParentMethodDeclaration(node.getParent());
-		}
-	}
-	
-	private MethodDeclaration findMethodForCatch(CatchClause catchClause) {
-		return (MethodDeclaration) findParentMethodDeclaration(catchClause);
-	}
-	
-	public HashMap<MethodDeclaration, String> getSuspectMethods() {
-		return suspectMethods;
-	}
-	
-	public void printExceptions() {
-		for(MethodDeclaration declaration : suspectMethods.keySet()) {
-			String type = suspectMethods.get(declaration);
-			DetectException.printMessage(String.format("The following method suffers from the %s pattern", type));
-			DetectException.printMessage(declaration.toString());
 		}
 	}
 }
