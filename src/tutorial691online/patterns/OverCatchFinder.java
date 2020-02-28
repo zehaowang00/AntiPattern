@@ -7,6 +7,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
@@ -14,8 +15,11 @@ import tutorial691online.handlers.DetectException;
 import tutorial691online.visitors.OverCatchVisitor;
 
 public class OverCatchFinder extends AbstractFinder {
-	HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
 	
+	public OverCatchFinder() {
+		this.type = "OverCatch";
+		this.visitor = new OverCatchVisitor();
+	}
 	public void findExceptions(IProject project) throws JavaModelException {
 		IPackageFragment[] packages = JavaCore.create(project).getPackageFragments();
 		for(IPackageFragment mypackage : packages){
@@ -27,20 +31,12 @@ public class OverCatchFinder extends AbstractFinder {
 		for (ICompilationUnit unit : packageFragment.getCompilationUnits()) {
 			CompilationUnit parsedCompilationUnit = parse(unit);
 
-			OverCatchVisitor overCatchVisitor = new OverCatchVisitor();
-			parsedCompilationUnit.accept(overCatchVisitor);
+			parsedCompilationUnit.accept(this.visitor);
+			getMethodsWithTargetCatchClauses(this.visitor);
 		}
 	}
 	
-	public HashMap<MethodDeclaration, String> getSuspectMethods() {
-		return suspectMethods;
-	}
-	
-	public void printExceptions() {
-		for(MethodDeclaration declaration : suspectMethods.keySet()) {
-			String type = suspectMethods.get(declaration);
-			DetectException.printMessage(String.format("The following method suffers from the %s pattern", type));
-			DetectException.printMessage(declaration.toString());
-		}
+	private void getMethodsWithTargetCatchClauses(ASTVisitor visitor) {
+		
 	}
 }

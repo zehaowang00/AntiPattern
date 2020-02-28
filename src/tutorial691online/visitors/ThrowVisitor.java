@@ -86,13 +86,10 @@ public class ThrowVisitor extends ASTVisitor{
 					for (String tbr : toBeResolved) {
 						visitor.getThrowException().remove(tbr.intern());
 					}
-				} else if (nodeParent.toString().equalsIgnoreCase("MethodDeclaration")) {
-					//deem as not in try block
 				}
 				this.throwException.putAll(visitor.getThrowException());
 			}
 		}
-		// TODO Auto-generated method stub
 		return super.visit(node);
 	}
 }
