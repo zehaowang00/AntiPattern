@@ -36,7 +36,7 @@ public class DestructiveWrappingFinder extends AbstractFinder {
 	
 	private void getMethodsWithTargetCatchClauses(ASTVisitor cwt) {
 		for(CatchClause destuctiveWrapping: ((CatchWithThrowVisitor)cwt).getDestuctiveWrapping()) {
-			suspectMethods.put(findMethodForCatch(destuctiveWrapping), "DestuctiveWrapping");
+			suspectMethods.put(findParentMethodDeclaration(destuctiveWrapping), "DestuctiveWrapping");
 		}
 	}
 }

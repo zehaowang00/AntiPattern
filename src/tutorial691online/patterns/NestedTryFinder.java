@@ -3,12 +3,16 @@ package tutorial691online.patterns;
 import java.util.HashMap;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.TryStatement;
 
-import tutorial691online.handlers.DetectException;
 import tutorial691online.visitors.TryStatementVisitor;
 
-import org.eclipse.jdt.core.*;
-import org.eclipse.jdt.core.dom.*;
 
 public class NestedTryFinder extends AbstractFinder {
 	HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
@@ -34,33 +38,7 @@ public class NestedTryFinder extends AbstractFinder {
 	
 	private void getMethodsWithTargetTryStatement(TryStatementVisitor tryStatementVisitor) {
 		for(TryStatement nestedTry: tryStatementVisitor.getNestedTry()) {
-			suspectMethods.put(findMethodForTry(nestedTry), "NestedTry");
-		}	
-		
-		
-	}
-	
-	private ASTNode findParentMethodDeclaration(ASTNode node) {
-		if(node.getParent().getNodeType() == ASTNode.METHOD_DECLARATION) {
-			return node.getParent();
-		} else {
-			return findParentMethodDeclaration(node.getParent());
-		}
-	}
-	
-	private MethodDeclaration findMethodForTry(TryStatement nestedTry) {
-		return (MethodDeclaration) findParentMethodDeclaration(nestedTry);
-	}
-	
-	public HashMap<MethodDeclaration, String> getSuspectMethods() {
-		return suspectMethods;
-	}
-	
-	public void printExceptions() {
-		for(MethodDeclaration declaration : suspectMethods.keySet()) {
-			String type = suspectMethods.get(declaration);
-			DetectException.printMessage(String.format("The following method suffers from the %s pattern", type));
-			DetectException.printMessage(declaration.toString());
+			suspectMethods.put(findParentMethodDeclaration(nestedTry), "NestedTry");
 		}
 	}
 }

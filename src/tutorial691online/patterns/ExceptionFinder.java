@@ -33,12 +33,11 @@ public class ExceptionFinder extends AbstractFinder {
 	private void getMethodsWithTargetCatchClauses(CatchClauseVisitor catchClauseVisitor) {
 		
 		for(CatchClause emptyCatch: catchClauseVisitor.getEmptyCatches()) {
-			suspectMethods.put(findMethodForCatch(emptyCatch), "EmptyCatch");
+			suspectMethods.put(findParentMethodDeclaration(emptyCatch), "EmptyCatch");
 		}	
 		
 		for(CatchClause dummyCatch: catchClauseVisitor.getDummyCatches()) {
-			suspectMethods.put(findMethodForCatch(dummyCatch), "DummyCatch");
+			suspectMethods.put(findParentMethodDeclaration(dummyCatch), "DummyCatch");
 		}
-		
 	}
 }

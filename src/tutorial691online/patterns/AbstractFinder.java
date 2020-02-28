@@ -10,7 +10,6 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
@@ -24,16 +23,12 @@ public abstract class AbstractFinder {
 
 	public abstract void findExceptions(IProject project) throws JavaModelException;	
 	
-	private ASTNode findParentMethodDeclaration(ASTNode node) {
+	protected MethodDeclaration findParentMethodDeclaration(ASTNode node) {
 		if(node.getParent().getNodeType() == ASTNode.METHOD_DECLARATION) {
-			return node.getParent();
+			return (MethodDeclaration)node.getParent();
 		} else {
 			return findParentMethodDeclaration(node.getParent());
 		}
-	}
-	
-	protected MethodDeclaration findMethodForCatch(CatchClause catchClause) {
-		return (MethodDeclaration) findParentMethodDeclaration(catchClause);
 	}
 	
 	public void printExceptions() {
