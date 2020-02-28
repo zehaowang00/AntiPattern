@@ -24,8 +24,9 @@ import tutorial691online.patterns.AbstractFinder;
 public class OverCatchVisitor extends ASTVisitor{
 	
 	// all possible thrown exceptions of the current try block
-	private Set<String> exceptionTypes = new HashSet<String>();
-	public final Set<String> getExceptionTypes() {
+	private Set<ITypeBinding> exceptionTypes = new HashSet<ITypeBinding>();
+
+	public final Set<ITypeBinding> getExceptionTypes() {
 		return exceptionTypes;
 	}
 
@@ -33,17 +34,51 @@ public class OverCatchVisitor extends ASTVisitor{
 	public boolean visit(CatchClause node) {
 		return super.visit(node);
 	}
-	
+
+	// check if there are not equal but sub-type compatible cases
 	@Override
 	public boolean visit(TryStatement node) {
 		MethodInvocationVisitor miv = new MethodInvocationVisitor();
 		node.getBody().accept(miv);
 		@SuppressWarnings("unchecked")
 		List<CatchClause> catches = node.catchClauses();
-		for (CatchClause cc : catches) {
-			String exName = cc.getException().getType().toString().intern();
-			if(!miv.thrownException.containsKey(exName) && !this.exceptionTypes.contains(exName)) {
-				System.out.println(node);
+		boolean result = false;
+		
+		// if over catch checked exceptions
+		for (ITypeBinding e : exceptionTypes) {
+			for (CatchClause cc : catches) {
+				ITypeBinding catchedException = cc.getException().getType().resolveBinding();
+				// nested if means it finds a caught exception that is the super class of thrown Exception
+				if (e.isSubTypeCompatible(catchedException)) {
+					if (!catchedException.getQualifiedName().equals(e.getQualifiedName())) {
+						result |= true;
+						break;
+					}
+				}
+			}
+			if (result) {
+				break;
+			}
+		}
+
+		// if over catch unchecked exceptions
+		if (!result) {
+			for (String exceptionName : miv.thrownException.keySet()) {
+				Type type = miv.thrownException.get(exceptionName);
+				ITypeBinding typeBinding = type.resolveBinding();
+				for (CatchClause cc : catches) {
+					ITypeBinding catchedException = cc.getException().getType().resolveBinding();
+					// nested if means it finds a caught exception that is the super class of thrown Exception
+					if (typeBinding.isSubTypeCompatible(catchedException)) {
+						if (!catchedException.getQualifiedName().equals(typeBinding.getQualifiedName())) {
+							result |= true;
+							break;
+						}
+					}
+				}
+				if (result) {
+					break;
+				}
 			}
 		}
 		return super.visit(node);
@@ -55,7 +90,7 @@ public class OverCatchVisitor extends ASTVisitor{
 		public boolean visit(MethodInvocation node) {
 			IMethodBinding methodBinding = node.resolveMethodBinding();
 			for(ITypeBinding typeBinding : methodBinding.getExceptionTypes()) {
-				exceptionTypes.add(typeBinding.getName().intern());
+				exceptionTypes.add(typeBinding);
 			}
 			IMethod iMethod = (IMethod) methodBinding.getJavaElement();
 			
