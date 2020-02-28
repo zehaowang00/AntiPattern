@@ -1,21 +1,22 @@
 package tutorial691online.patterns;
 
-import java.util.HashMap;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TryStatement;
 
 import tutorial691online.visitors.TryStatementVisitor;
 
-
 public class NestedTryFinder extends AbstractFinder {
-	HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
+	
+	public NestedTryFinder() {
+		this.visitor = new TryStatementVisitor();
+		this.type = "NestedTry";
+	}
 	
 	public void findExceptions(IProject project) throws JavaModelException {
 		IPackageFragment[] packages = JavaCore.create(project).getPackageFragments();
@@ -29,16 +30,14 @@ public class NestedTryFinder extends AbstractFinder {
 			CompilationUnit parsedCompilationUnit = parse(unit);
 			
 			//do method visit here and check stuff
-			TryStatementVisitor exceptionVisitor = new TryStatementVisitor();
-			parsedCompilationUnit.accept(exceptionVisitor);
-
-			getMethodsWithTargetTryStatement(exceptionVisitor);
+			parsedCompilationUnit.accept(this.visitor);
+			getMethodsWithTargetTryStatement(this.visitor);
 		}
 	}
 	
-	private void getMethodsWithTargetTryStatement(TryStatementVisitor tryStatementVisitor) {
-		for(TryStatement nestedTry: tryStatementVisitor.getNestedTry()) {
-			suspectMethods.put(findParentMethodDeclaration(nestedTry), "NestedTry");
+	private void getMethodsWithTargetTryStatement(ASTVisitor visitor) {
+		for(TryStatement nestedTry: ((TryStatementVisitor)visitor).getNestedTry()) {
+			suspectMethods.put(findParentMethodDeclaration(nestedTry), this.type);
 		}
 	}
 }
