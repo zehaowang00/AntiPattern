@@ -5,6 +5,8 @@ import java.util.HashMap;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -15,13 +17,28 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import tutorial691online.handlers.DetectException;
 import tutorial691online.visitors.AbstractVisitor;
 
-public abstract class AbstractFinder {
+public class AbstractFinder {
 
 	HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
 	String type;
 	AbstractVisitor visitor;
 
-	public abstract void findExceptions(IProject project) throws JavaModelException;	
+	public void findExceptions(IProject project) throws JavaModelException {
+		IPackageFragment[] packages = JavaCore.create(project).getPackageFragments();
+		for(IPackageFragment mypackage : packages){
+			findTarget(mypackage);
+		}
+	}
+	
+	private void findTarget(IPackageFragment packageFragment) throws JavaModelException {
+		for (ICompilationUnit unit : packageFragment.getCompilationUnits()) {
+			CompilationUnit parsedCompilationUnit = parse(unit);
+			
+			//do method visit here and check stuff
+			parsedCompilationUnit.accept(this.visitor);
+			getAntipatternMethods();
+		}
+	}	
 	
 	protected MethodDeclaration findParentMethodDeclaration(ASTNode node) {
 		if(node.getParent().getNodeType() == ASTNode.METHOD_DECLARATION) {
