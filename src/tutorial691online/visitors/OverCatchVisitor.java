@@ -94,7 +94,7 @@ public class OverCatchVisitor extends AbstractVisitor{
 				if (icu != null) {
 					CompilationUnit cu = AbstractFinder.parse(icu);
 					ASTNode methodNode = cu.findDeclaringNode(methodBinding.getKey());
-					ThrowVisitor checkThrowVisitor = new ThrowVisitor();
+					ThrowVisitor checkThrowVisitor = new ThrowVisitor(new HashSet<String>());
 					methodNode.accept(checkThrowVisitor);
 					thrownException.putAll(checkThrowVisitor.throwException);
 				}

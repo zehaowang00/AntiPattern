@@ -26,7 +26,12 @@ import tutorial691online.patterns.AbstractFinder;
 public class ThrowVisitor extends ASTVisitor{
 	
 	Map<String, Type> throwException = new HashMap<String, Type>();
+	Set<String> visitedMethods; // record methods that already have been visited to prevent infinite loop for the recursive methods, i.e. methodA calls methodA
 	
+	public ThrowVisitor(Set<String> visitedMethods) {
+		this.visitedMethods = visitedMethods;
+	}
+
 	public Map<String, Type> getThrowException() {
 		return throwException;
 	}
@@ -45,9 +50,13 @@ public class ThrowVisitor extends ASTVisitor{
 	
 	@Override
 	public boolean visit(MethodInvocation node) {
-		ThrowVisitor visitor = new ThrowVisitor();
+		// check if the method has been visited, prevent infinite loop
 		IMethodBinding methodBinding = node.resolveMethodBinding();
 		IMethod iMethod = (IMethod) methodBinding.getJavaElement();
+		if (!this.visitedMethods.add(iMethod.toString())) {
+			return super.visit(node);
+		}
+		ThrowVisitor visitor = new ThrowVisitor(this.visitedMethods);
 		
 		if (!iMethod.isBinary()) {
 			// refer to: https://stackoverflow.com/questions/47090784/how-to-get-astnode-definition-in-jdt
