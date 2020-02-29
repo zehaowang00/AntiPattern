@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CatchClause;
@@ -20,6 +21,10 @@ import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.Type;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import tutorial691online.patterns.AbstractFinder;
 
@@ -96,6 +101,15 @@ public class ThrowVisitor extends ASTVisitor{
 					}
 				}
 				this.throwException.putAll(visitor.getThrowException());
+			}
+		} else {
+			try {
+				String javadocStr = iMethod.getAttachedJavadoc(null);
+				Document javadoc = Jsoup.parse(javadocStr);
+				Element throwsLabel = javadoc.selectFirst("dt span:matches([Tt]hrows)");
+				System.out.println(throwsLabel);
+			} catch (JavaModelException e) {
+				e.printStackTrace();
 			}
 		}
 		return super.visit(node);

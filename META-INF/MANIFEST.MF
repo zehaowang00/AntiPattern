@@ -12,3 +12,5 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.console;bundle-version="3.8.600"
 Automatic-Module-Name: tutorial691-online
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ClassPath: lib/jsoup-1.12.2.jar,
+ .
