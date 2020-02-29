@@ -23,16 +23,12 @@ import tutorial691online.patterns.AbstractFinder;
 
 public class OverCatchVisitor extends ASTVisitor{
 	
+	private Set<TryStatement> overCatches = new HashSet<TryStatement>();
 	// all possible thrown exceptions of the current try block
 	private Set<ITypeBinding> exceptionTypes = new HashSet<ITypeBinding>();
 
-	public final Set<ITypeBinding> getExceptionTypes() {
-		return exceptionTypes;
-	}
-
-	@Override
-	public boolean visit(CatchClause node) {
-		return super.visit(node);
+	public final Set<TryStatement> getOverCatches() {
+		return overCatches;
 	}
 
 	// check if there are not equal but sub-type compatible cases
@@ -80,6 +76,9 @@ public class OverCatchVisitor extends ASTVisitor{
 					break;
 				}
 			}
+		}
+		if (result) {
+			overCatches.add(node);
 		}
 		return super.visit(node);
 	}

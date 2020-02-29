@@ -1,7 +1,5 @@
 package tutorial691online.patterns;
 
-import java.util.HashMap;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IPackageFragment;
@@ -9,9 +7,8 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.TryStatement;
 
-import tutorial691online.handlers.DetectException;
 import tutorial691online.visitors.OverCatchVisitor;
 
 public class OverCatchFinder extends AbstractFinder {
@@ -37,6 +34,8 @@ public class OverCatchFinder extends AbstractFinder {
 	}
 	
 	private void getMethodsWithTargetCatchClauses(ASTVisitor visitor) {
-		
+		for (TryStatement overCatch : ((OverCatchVisitor)visitor).getOverCatches()) {
+			suspectMethods.put(findParentMethodDeclaration(overCatch), this.type);
+		}
 	}
 }

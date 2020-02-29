@@ -40,7 +40,6 @@ public class ThrowVisitor extends ASTVisitor{
 				return super.visit(node);
 			}
 		});
-		// TODO Auto-generated method stub
 		return super.visit(node);
 	}
 	
