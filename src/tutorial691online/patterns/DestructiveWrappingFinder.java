@@ -5,8 +5,6 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import tutorial691online.visitors.CatchWithThrowVisitor;
 
@@ -30,13 +28,7 @@ public class DestructiveWrappingFinder extends AbstractFinder {
 			
 			//do method visit here and check stuff
 			parsedCompilationUnit.accept(this.visitor);
-			getMethodsWithTargetCatchClauses(this.visitor);
-		}
-	}
-	
-	private void getMethodsWithTargetCatchClauses(ASTVisitor cwt) {
-		for(CatchClause destuctiveWrapping: ((CatchWithThrowVisitor)cwt).getDestuctiveWrapping()) {
-			suspectMethods.put(findParentMethodDeclaration(destuctiveWrapping), this.type);
+			getAntipatternMethods();
 		}
 	}
 }

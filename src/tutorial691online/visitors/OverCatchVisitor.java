@@ -21,15 +21,11 @@ import org.eclipse.jdt.core.dom.Type;
 
 import tutorial691online.patterns.AbstractFinder;
 
-public class OverCatchVisitor extends ASTVisitor{
+public class OverCatchVisitor extends AbstractVisitor{
 	
-	private Set<TryStatement> overCatches = new HashSet<TryStatement>();
+	private Set<TryStatement> antipatternNodes = new HashSet<TryStatement>();
 	// all possible thrown exceptions of the current try block
 	private Set<ITypeBinding> exceptionTypes = new HashSet<ITypeBinding>();
-
-	public final Set<TryStatement> getOverCatches() {
-		return overCatches;
-	}
 
 	// check if there are not equal but sub-type compatible cases
 	@Override
@@ -78,7 +74,7 @@ public class OverCatchVisitor extends ASTVisitor{
 			}
 		}
 		if (result) {
-			overCatches.add(node);
+			antipatternNodes.add(node);
 		}
 		return super.visit(node);
 	}

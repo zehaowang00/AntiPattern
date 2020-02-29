@@ -1,23 +1,13 @@
 package tutorial691online.visitors;
 
-import java.util.HashSet;
-
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 
-public class CatchWithThrowVisitor extends ASTVisitor{
-	private HashSet<CatchClause> destuctiveWrapping = new HashSet<>();
-	
+public class CatchWithThrowVisitor extends AbstractVisitor {
 	@Override
-	public boolean visit(CatchClause node) {
-		
-//		MethodInvocationVisitor methodInvocationVisitor = new MethodInvocationVisitor("LogCatchSwitch");
-//		node.accept(methodInvocationVisitor);
-		
-		
-
+	public boolean visit(CatchClause node) {		
 		///important logic    
 		//1.找到每个catch中exception类型 
 		//2. 找到catchblock中包含new exception 
@@ -34,7 +24,7 @@ public class CatchWithThrowVisitor extends ASTVisitor{
 						public boolean visit(ClassInstanceCreation cic) {
 							String exceptionInstanceType = cic.getType().toString();
 							if (exceptionInstanceType.equals(exceptionType)) {
-								destuctiveWrapping.add(node);
+								antipatternNodes.add(node);
 							}
 							return false;
 						}
@@ -46,17 +36,6 @@ public class CatchWithThrowVisitor extends ASTVisitor{
 			
 //			System.out.println(node.getException());
 		}
-		
-		
-
 		return super.visit(node);
 	}
-	
-	
-	///need to change
-	public HashSet<CatchClause> getDestuctiveWrapping() {
-		return destuctiveWrapping;
-	}
-	
-
 }

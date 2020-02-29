@@ -9,17 +9,17 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 import tutorial691online.handlers.DetectException;
+import tutorial691online.visitors.AbstractVisitor;
 
 public abstract class AbstractFinder {
 
 	HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
 	String type;
-	ASTVisitor visitor;
+	AbstractVisitor visitor;
 
 	public abstract void findExceptions(IProject project) throws JavaModelException;	
 	
@@ -36,6 +36,12 @@ public abstract class AbstractFinder {
 			String type = suspectMethods.get(declaration);
 			DetectException.printMessage(String.format("The following method suffers from the %s pattern", type));
 			DetectException.printMessage(declaration.toString());
+		}
+	}
+	
+	protected void getAntipatternMethods() {
+		for(ASTNode antipatternNode : this.visitor.getAntipatternNodes()) {
+			suspectMethods.put(findParentMethodDeclaration(antipatternNode), this.type);
 		}
 	}
 	

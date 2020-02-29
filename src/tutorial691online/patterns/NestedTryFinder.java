@@ -5,10 +5,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.TryStatement;
-
 import tutorial691online.visitors.TryStatementVisitor;
 
 public class NestedTryFinder extends AbstractFinder {
@@ -31,13 +28,7 @@ public class NestedTryFinder extends AbstractFinder {
 			
 			//do method visit here and check stuff
 			parsedCompilationUnit.accept(this.visitor);
-			getMethodsWithTargetTryStatement(this.visitor);
-		}
-	}
-	
-	private void getMethodsWithTargetTryStatement(ASTVisitor visitor) {
-		for(TryStatement nestedTry: ((TryStatementVisitor)visitor).getNestedTry()) {
-			suspectMethods.put(findParentMethodDeclaration(nestedTry), this.type);
+			getAntipatternMethods();
 		}
 	}
 }
