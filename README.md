@@ -4,4 +4,5 @@ TODO:
 2. optimize printed message
 3. ~~optimize code structure~~
 4. constructor case
-5. java doc case
+5. ~~java doc case~~
+6. method binding comment
