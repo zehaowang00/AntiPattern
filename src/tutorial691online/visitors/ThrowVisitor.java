@@ -24,15 +24,14 @@ import org.eclipse.jdt.core.dom.Type;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
 import tutorial691online.patterns.AbstractFinder;
 
 public class ThrowVisitor extends ASTVisitor{
 	
 	Map<String, Type> throwException = new HashMap<String, Type>();
 	Set<String> visitedMethods; // record methods that already have been visited to prevent infinite loop for the recursive methods, i.e. methodA calls methodA
-	
+	Set<String> javadocExceptions = new HashSet<String>();
+
 	public ThrowVisitor(Set<String> visitedMethods) {
 		this.visitedMethods = visitedMethods;
 	}
@@ -102,12 +101,24 @@ public class ThrowVisitor extends ASTVisitor{
 				}
 				this.throwException.putAll(visitor.getThrowException());
 			}
-		} else {
+		} 
+		
+		// analyze javadoc for third-party libs
+		if (iMethod.isBinary()){
 			try {
 				String javadocStr = iMethod.getAttachedJavadoc(null);
-				Document javadoc = Jsoup.parse(javadocStr);
-				Element throwsLabel = javadoc.selectFirst("dt span:matches([Tt]hrows)");
-				System.out.println(throwsLabel);
+				if (javadocStr != null) {
+					Document javadoc = Jsoup.parse(javadocStr);
+					Element throwsLabel = javadoc.selectFirst("dt span:matches([Tt]hrows)");
+					Element dd = throwsLabel.parent().nextElementSibling();
+					while(dd != null) {
+						Element a = dd.selectFirst("code a");
+						String cls = a.text();
+						String pkg = a.attr("title").split(" ")[2];
+						javadocExceptions.add(pkg + "." + cls);
+						dd = dd.nextElementSibling();
+					}
+				}
 			} catch (JavaModelException e) {
 				e.printStackTrace();
 			}
