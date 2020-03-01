@@ -10,7 +10,6 @@ import java.util.Set;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CatchClause;
@@ -22,9 +21,6 @@ import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.Type;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import tutorial691online.patterns.AbstractFinder;
 
 public class ThrowVisitor extends ASTVisitor{
@@ -139,24 +135,9 @@ public class ThrowVisitor extends ASTVisitor{
 		
 		// analyze javadoc for third-party libs
 		if (iMethod.isBinary()){
-			try {
-				String javadocStr = iMethod.getAttachedJavadoc(null);
-				if (javadocStr != null) {
-					Document javadoc = Jsoup.parse(javadocStr);
-					Element throwsLabel = javadoc.selectFirst("dt span:matches([Tt]hrows)");
-					Element dd = throwsLabel.parent().nextElementSibling();
-					while(dd != null) {
-						Element a = dd.selectFirst("code a");
-						String cls = a.text();
-						String pkg = a.attr("title").split(" ")[2];
-						javadocExceptions.add(pkg + "." + cls);
-						dd = dd.nextElementSibling();
-					}
-				}
-			} catch (JavaModelException e) {
-				e.printStackTrace();
-			}
+			this.javadocExceptions.addAll(Util.getJavadocExceptions(iMethod));
 		}
+		
 		return super.visit(node);
 	}
 }
