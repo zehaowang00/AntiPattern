@@ -25,9 +25,9 @@ import tutorial691online.patterns.AbstractFinder;
 
 public class ThrowVisitor extends ASTVisitor{
 	
-	Map<String, Type> throwException = new HashMap<String, Type>();
-	Set<String> visitedMethods; // record methods that already have been visited to prevent infinite loop for the recursive methods, i.e. methodA calls methodA
-	Set<String> javadocExceptions = new HashSet<String>();
+	private Map<String, Type> throwException = new HashMap<String, Type>();
+	private Set<String> visitedMethods; // record methods that already have been visited to prevent infinite loop for the recursive methods, i.e. methodA calls methodA
+	private Set<String> javadocExceptions = new HashSet<String>();
 	
 	// to handle javadoc Exceptions
 	static Set<String> superExceptions = new HashSet<String>();

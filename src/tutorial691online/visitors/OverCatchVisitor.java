@@ -24,7 +24,7 @@ import tutorial691online.patterns.AbstractFinder;
 
 public class OverCatchVisitor extends AbstractVisitor{
 	// all possible thrown exceptions of the current try block
-	private Set<ITypeBinding> exceptionTypes = new HashSet<ITypeBinding>();
+	private Set<ITypeBinding> checkedExceptionTypes = new HashSet<ITypeBinding>();
 
 	// check if there are not equal but sub-type compatible cases
 	@Override
@@ -36,7 +36,7 @@ public class OverCatchVisitor extends AbstractVisitor{
 		boolean result = false;
 		
 		// if over catch checked exceptions
-		for (ITypeBinding e : exceptionTypes) {
+		for (ITypeBinding e : checkedExceptionTypes) {
 			for (CatchClause cc : catches) {
 				ITypeBinding catchedException = cc.getException().getType().resolveBinding();
 				// nested if means it finds a caught exception that is the super class of thrown Exception
@@ -80,11 +80,12 @@ public class OverCatchVisitor extends AbstractVisitor{
 	
 	class MethodInvocationVisitor extends ASTVisitor {
 		Map<String, Type> thrownException = new HashMap<String, Type>();
+		Set<String> javadocExceptions = new HashSet<String>();
 		@Override
 		public boolean visit(MethodInvocation node) {
 			IMethodBinding methodBinding = node.resolveMethodBinding();
 			for(ITypeBinding typeBinding : methodBinding.getExceptionTypes()) {
-				exceptionTypes.add(typeBinding);
+				checkedExceptionTypes.add(typeBinding);
 			}
 			IMethod iMethod = (IMethod) methodBinding.getJavaElement();
 			CompilationUnit cu = null;
@@ -103,7 +104,14 @@ public class OverCatchVisitor extends AbstractVisitor{
 				ASTNode methodNode = cu.findDeclaringNode(methodBinding.getKey());
 				ThrowVisitor checkThrowVisitor = new ThrowVisitor(new HashSet<String>());
 				methodNode.accept(checkThrowVisitor);
-				thrownException.putAll(checkThrowVisitor.throwException);
+				thrownException.putAll(checkThrowVisitor.getThrowException());
+				javadocExceptions.addAll(checkThrowVisitor.getJavadocExceptions());
+			}
+			
+			if (iMethod.isBinary()) {
+				javadocExceptions.addAll(Util.getJavadocExceptions(iMethod));
+			} else {
+				
 			}
 			return super.visit(node);
 		}
