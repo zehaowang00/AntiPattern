@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
@@ -62,46 +63,55 @@ public class ThrowVisitor extends ASTVisitor{
 		}
 		ThrowVisitor visitor = new ThrowVisitor(this.visitedMethods);
 		
-		if (!iMethod.isBinary()) {
-			// refer to: https://stackoverflow.com/questions/47090784/how-to-get-astnode-definition-in-jdt
+		CompilationUnit cu = null;
+
+		// get compilationUnit for binary files and source files
+		if (iMethod.isBinary()) {
+			IClassFile icf = iMethod.getClassFile();
+			if (icf != null) {
+				cu = AbstractFinder.parse(icf);
+			}
+		} else {
 			ICompilationUnit icu = iMethod.getCompilationUnit();
 			if (icu != null) {
-				CompilationUnit cu = AbstractFinder.parse(icu);
-				// TODO: find called methods and get all the throw Exception in method body
-				// Add the Exceptions to the set exceptionTypes
-				ASTNode methodNode = cu.findDeclaringNode(methodBinding.getKey());
-				methodNode.accept(visitor);
-				
-				ASTNode nodeParent = node.getParent();
-				
-				///Check whether a method is in try block
-				while(!(nodeParent.getNodeType() == ASTNode.METHOD_DECLARATION || nodeParent.getNodeType() == ASTNode.TRY_STATEMENT)) {
-					nodeParent = nodeParent.getParent();
-				}
-				
-				if(nodeParent.getNodeType() == ASTNode.TRY_STATEMENT) {
-					///to find out exception type in catch block 
-					TryStatement tryNode = (TryStatement) nodeParent;
-					List<?> catchBodys = tryNode.catchClauses();
-					Iterator<?> iter=catchBodys.iterator();
-					Set<String> toBeResolved = new HashSet<String>();
-					while(iter.hasNext()){
-			             CatchClause ca = (CatchClause) iter.next();
-			             ITypeBinding catchedExceptionType = ca.getException().getType().resolveBinding();
-			             for (String type : visitor.getThrowException().keySet()) {
-			            	 ITypeBinding thrownExceptionType = visitor.getThrowException().get(type).resolveBinding();
-			            	 if (thrownExceptionType.isSubTypeCompatible(catchedExceptionType)) {
-			            		 toBeResolved.add(ca.getException().getType().toString().intern());
-			            	 }
-			             }
-			        }
-					for (String tbr : toBeResolved) {
-						visitor.getThrowException().remove(tbr.intern());
-					}
-				}
-				this.throwException.putAll(visitor.getThrowException());
+				cu = AbstractFinder.parse(icu);
 			}
-		} 
+		}
+		if (cu != null) {
+			// find called methods and get all the throw Exception in method body
+			// Add the Exceptions to the set exceptionTypes
+			ASTNode methodNode = cu.findDeclaringNode(methodBinding.getKey());
+			methodNode.accept(visitor);
+			
+			ASTNode nodeParent = node.getParent();
+			
+			///Check whether a method is in try block
+			while(!(nodeParent.getNodeType() == ASTNode.METHOD_DECLARATION || nodeParent.getNodeType() == ASTNode.TRY_STATEMENT)) {
+				nodeParent = nodeParent.getParent();
+			}
+			
+			if(nodeParent.getNodeType() == ASTNode.TRY_STATEMENT) {
+				///to find out exception type in catch block 
+				TryStatement tryNode = (TryStatement) nodeParent;
+				List<?> catchBodys = tryNode.catchClauses();
+				Iterator<?> iter=catchBodys.iterator();
+				Set<String> toBeResolved = new HashSet<String>();
+				while(iter.hasNext()){
+		             CatchClause ca = (CatchClause) iter.next();
+		             ITypeBinding catchedExceptionType = ca.getException().getType().resolveBinding();
+		             for (String type : visitor.getThrowException().keySet()) {
+		            	 ITypeBinding thrownExceptionType = visitor.getThrowException().get(type).resolveBinding();
+		            	 if (thrownExceptionType.isSubTypeCompatible(catchedExceptionType)) {
+		            		 toBeResolved.add(ca.getException().getType().toString().intern());
+		            	 }
+		             }
+		        }
+				for (String tbr : toBeResolved) {
+					visitor.getThrowException().remove(tbr.intern());
+				}
+			}
+			this.throwException.putAll(visitor.getThrowException());
+		}
 		
 		// analyze javadoc for third-party libs
 		if (iMethod.isBinary()){
