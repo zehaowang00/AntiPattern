@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -86,18 +87,23 @@ public class OverCatchVisitor extends AbstractVisitor{
 				exceptionTypes.add(typeBinding);
 			}
 			IMethod iMethod = (IMethod) methodBinding.getJavaElement();
-			
-			// only handle source file. ignore binary(.class) files
-			if (!iMethod.isBinary()) {
-				// refer to: https://stackoverflow.com/questions/47090784/how-to-get-astnode-definition-in-jdt
+			CompilationUnit cu = null;
+			if (iMethod.isBinary()) {
+				IClassFile icf = iMethod.getClassFile();
+				if (icf != null) {
+					cu = AbstractFinder.parse(icf);
+				}
+			} else {
 				ICompilationUnit icu = iMethod.getCompilationUnit();
 				if (icu != null) {
-					CompilationUnit cu = AbstractFinder.parse(icu);
-					ASTNode methodNode = cu.findDeclaringNode(methodBinding.getKey());
-					ThrowVisitor checkThrowVisitor = new ThrowVisitor(new HashSet<String>());
-					methodNode.accept(checkThrowVisitor);
-					thrownException.putAll(checkThrowVisitor.throwException);
+					cu = AbstractFinder.parse(icu);
 				}
+			}
+			if (cu != null) {
+				ASTNode methodNode = cu.findDeclaringNode(methodBinding.getKey());
+				ThrowVisitor checkThrowVisitor = new ThrowVisitor(new HashSet<String>());
+				methodNode.accept(checkThrowVisitor);
+				thrownException.putAll(checkThrowVisitor.throwException);
 			}
 			return super.visit(node);
 		}
