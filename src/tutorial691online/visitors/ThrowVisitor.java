@@ -133,9 +133,10 @@ public class ThrowVisitor extends ASTVisitor{
 			this.javadocExceptions.addAll(visitor.javadocExceptions);
 		}
 		
-		// analyze javadoc for third-party libs
 		if (iMethod.isBinary()){
 			this.javadocExceptions.addAll(Util.getJavadocExceptions(iMethod));
+		} else {
+			// TODO: method binding comments
 		}
 		
 		return super.visit(node);

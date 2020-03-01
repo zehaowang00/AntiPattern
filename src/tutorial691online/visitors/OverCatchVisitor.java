@@ -111,7 +111,7 @@ public class OverCatchVisitor extends AbstractVisitor{
 			if (iMethod.isBinary()) {
 				javadocExceptions.addAll(Util.getJavadocExceptions(iMethod));
 			} else {
-				
+				// TODO: method binding comments
 			}
 			return super.visit(node);
 		}
