@@ -32,13 +32,24 @@ public class ThrowVisitor extends ASTVisitor{
 	Map<String, Type> throwException = new HashMap<String, Type>();
 	Set<String> visitedMethods; // record methods that already have been visited to prevent infinite loop for the recursive methods, i.e. methodA calls methodA
 	Set<String> javadocExceptions = new HashSet<String>();
-
+	
+	// to handle javadoc Exceptions
+	static Set<String> superExceptions = new HashSet<String>();
+	static {
+		superExceptions.add("java.lang.RuntimeException");
+		superExceptions.add("java.lang.Exception");
+		superExceptions.add("java.lang.Throwable");
+	}
 	public ThrowVisitor(Set<String> visitedMethods) {
 		this.visitedMethods = visitedMethods;
 	}
 
 	public Map<String, Type> getThrowException() {
 		return throwException;
+	}
+	
+	public Set<String> getJavadocExceptions() {
+		return javadocExceptions;
 	}
 
 	@Override
@@ -95,22 +106,35 @@ public class ThrowVisitor extends ASTVisitor{
 				TryStatement tryNode = (TryStatement) nodeParent;
 				List<?> catchBodys = tryNode.catchClauses();
 				Iterator<?> iter=catchBodys.iterator();
-				Set<String> toBeResolved = new HashSet<String>();
+				Set<String> resolvedThrownExceptions = new HashSet<String>();
+				Set<String> resolvedJavadocExceptions = new HashSet<String>();
 				while(iter.hasNext()){
-		             CatchClause ca = (CatchClause) iter.next();
-		             ITypeBinding catchedExceptionType = ca.getException().getType().resolveBinding();
+		             CatchClause catchClause = (CatchClause) iter.next();
+		             Type caughtExceptionType = catchClause.getException().getType();
+		             ITypeBinding caughtExceptionTypeBinding = caughtExceptionType.resolveBinding();
+		             // record all thrown exceptions that will be resolved by the current catch clause
 		             for (String type : visitor.getThrowException().keySet()) {
 		            	 ITypeBinding thrownExceptionType = visitor.getThrowException().get(type).resolveBinding();
-		            	 if (thrownExceptionType.isSubTypeCompatible(catchedExceptionType)) {
-		            		 toBeResolved.add(ca.getException().getType().toString().intern());
+		            	 if (thrownExceptionType.isSubTypeCompatible(caughtExceptionTypeBinding)) {
+		            		 resolvedThrownExceptions.add(catchClause.getException().getType().toString().intern());
+		            	 }
+		             }
+		             
+		             // check if the current catch could handle the java doc exception
+		             String caughtExceptionTypeName = caughtExceptionTypeBinding.getQualifiedName();
+		             for (String jdocException : visitor.getJavadocExceptions()) {
+		            	 if (jdocException.equals(caughtExceptionTypeName) || superExceptions.contains(caughtExceptionTypeName)) {
+		            		 resolvedJavadocExceptions.add(jdocException);
 		            	 }
 		             }
 		        }
-				for (String tbr : toBeResolved) {
-					visitor.getThrowException().remove(tbr.intern());
+				for (String resolvedThrownException : resolvedThrownExceptions) {
+					visitor.getThrowException().remove(resolvedThrownException.intern());
 				}
+				visitor.getJavadocExceptions().removeAll(resolvedJavadocExceptions);
 			}
 			this.throwException.putAll(visitor.getThrowException());
+			this.javadocExceptions.addAll(visitor.javadocExceptions);
 		}
 		
 		// analyze javadoc for third-party libs
