@@ -50,7 +50,7 @@ public class Util {
 		for (TagElement tagElement : list) {
 			if (tagElement.getTagName() == null
 					|| !(tagElement.getTagName().equals(TagElement.TAG_THROWS) 
-							|| !tagElement.getTagName().equals(TagElement.TAG_EXCEPTION))) {
+							|| tagElement.getTagName().equals(TagElement.TAG_EXCEPTION))) {
 				continue;
 			}
 			@SuppressWarnings("unchecked")
