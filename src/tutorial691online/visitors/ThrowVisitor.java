@@ -79,6 +79,9 @@ public class ThrowVisitor extends ASTVisitor{
 	public boolean visit(MethodInvocation node) {
 		// check if the method has been visited, prevent infinite loop
 		IMethodBinding methodBinding = node.resolveMethodBinding();
+		if (methodBinding == null) {
+			return super.visit(node);
+		}
 		IMethod iMethod = (IMethod) methodBinding.getJavaElement();
 		if (!this.visitedMethods.add(iMethod.toString())) {
 			return super.visit(node);
@@ -105,6 +108,10 @@ public class ThrowVisitor extends ASTVisitor{
 			// find called methods and get all the throw Exception in method body
 			// Add the Exceptions to the set exceptionTypes
 			MethodDeclaration methodNode = (MethodDeclaration)cu.findDeclaringNode(methodBinding.getKey());
+			if (methodNode == null) {
+				return super.visit(node);
+			}
+			
 			methodNode.accept(visitor);
 
 			Map<String, ITypeBinding> localJavadocExceptions = Util.getLocalJavadocExceptions(methodNode.getJavadoc());

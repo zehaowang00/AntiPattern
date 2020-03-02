@@ -137,10 +137,17 @@ public class OverCatchVisitor extends AbstractVisitor{
 		@Override
 		public boolean visit(MethodInvocation node) {
 			IMethodBinding methodBinding = node.resolveMethodBinding();
+			if (methodBinding == null) {
+				System.out.println(methodBinding);
+				return super.visit(node);
+			}
 			for(ITypeBinding typeBinding : methodBinding.getExceptionTypes()) {
 				checkedExceptionTypes.add(typeBinding);
 			}
 			IMethod iMethod = (IMethod) methodBinding.getJavaElement();
+			if (iMethod == null) {
+				return super.visit(node);
+			}
 			CompilationUnit cu = null;
 			if (iMethod.isBinary()) {
 				IClassFile icf = iMethod.getClassFile();
