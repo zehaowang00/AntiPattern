@@ -145,6 +145,7 @@ public class ThrowVisitor extends ASTVisitor{
 		            	 ITypeBinding thrownExceptionType = this.throwException.get(type);
 		            	 if (thrownExceptionType.isSubTypeCompatible(caughtExceptionTypeBinding)) {
 		            		 resolvedThrownExceptions.add(type);
+		            		 this.javadocExceptions.remove(type);
 		            	 }
 		             }
 		             
@@ -153,6 +154,7 @@ public class ThrowVisitor extends ASTVisitor{
 		            	 ITypeBinding localJavadocException = this.localJavadocExceptions.get(type);
 		            	 if (localJavadocException.isSubTypeCompatible(caughtExceptionTypeBinding)) {
 		            		 resolvedLocalJavadocExceptions.add(type);
+		            		 this.javadocExceptions.remove(type);
 		            	 }
 		             }
 		             

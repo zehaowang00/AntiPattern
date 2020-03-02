@@ -10,6 +10,7 @@ import java.util.Set;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -18,6 +19,8 @@ import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.TryStatement;
+import org.eclipse.jdt.core.dom.Type;
+
 import tutorial691online.patterns.AbstractFinder;
 
 public class OverCatchVisitor extends AbstractVisitor{
@@ -36,10 +39,10 @@ public class OverCatchVisitor extends AbstractVisitor{
 		// if over catch checked exceptions
 		for (ITypeBinding e : checkedExceptionTypes) {
 			for (CatchClause cc : catches) {
-				ITypeBinding catchedException = cc.getException().getType().resolveBinding();
+				ITypeBinding caughtException = cc.getException().getType().resolveBinding();
 				// nested if means it finds a caught exception that is the super class of thrown Exception
-				if (e.isSubTypeCompatible(catchedException)) {
-					if (!catchedException.getQualifiedName().equals(e.getQualifiedName())) {
+				if (e.isSubTypeCompatible(caughtException)) {
+					if (!caughtException.getQualifiedName().equals(e.getQualifiedName())) {
 						result |= true;
 						break;
 					}
@@ -55,10 +58,10 @@ public class OverCatchVisitor extends AbstractVisitor{
 			for (String exceptionName : miv.thrownException.keySet()) {
 				ITypeBinding typeBinding = miv.thrownException.get(exceptionName);
 				for (CatchClause cc : catches) {
-					ITypeBinding catchedException = cc.getException().getType().resolveBinding();
+					ITypeBinding caughtException = cc.getException().getType().resolveBinding();
 					// nested if means it finds a caught exception that is the super class of thrown Exception
-					if (typeBinding.isSubTypeCompatible(catchedException)) {
-						if (!catchedException.getQualifiedName().equals(typeBinding.getQualifiedName())) {
+					if (typeBinding.isSubTypeCompatible(caughtException)) {
+						if (!caughtException.getQualifiedName().equals(typeBinding.getQualifiedName())) {
 							result |= true;
 							break;
 						}
@@ -69,6 +72,58 @@ public class OverCatchVisitor extends AbstractVisitor{
 				}
 			}
 		}
+		
+		// if over catch local java doc exceptions
+		if (!result) {
+			for (String type : miv.localJavadocExceptions.keySet()) {
+				ITypeBinding typeBinding = miv.localJavadocExceptions.get(type);
+				for (CatchClause cc : catches) {
+					ITypeBinding caughtException = cc.getException().getType().resolveBinding();
+					// nested if means it finds a caught exception that is the super class of thrown Exception
+					if (typeBinding.isSubTypeCompatible(caughtException)) {
+						if (!caughtException.getQualifiedName().equals(typeBinding.getQualifiedName())) {
+							result |= true;
+							break;
+						}
+					}
+				}
+				if (result) {
+					break;
+				}
+			}
+		}
+		
+		// if over catch online java doc exceptions
+		if (!result) {
+			boolean caughtSuperException = false;
+			for (CatchClause cc : catches) {
+				ITypeBinding caughtException = cc.getException().getType().resolveBinding();
+				caughtSuperException |= ThrowVisitor.superExceptions.contains(caughtException.getQualifiedName());
+				miv.javadocExceptions.remove(caughtException.getQualifiedName());
+			}
+			// if all exceptions are caught with the exactly same exception type, that's fine, otherwise,
+			if (!miv.javadocExceptions.isEmpty()) {
+				ASTNode parent = node.getParent();
+				while(parent.getNodeType() != ASTNode.METHOD_DECLARATION && parent.getNodeType() != ASTNode.COMPILATION_UNIT) {
+					parent = parent.getParent();
+				}
+				// check if they are thrown
+				if (parent.getNodeType() == ASTNode.METHOD_DECLARATION) {
+					MethodDeclaration methodDeclaration = (MethodDeclaration)parent;
+					@SuppressWarnings("unchecked")
+					List<Type> thrownExceptionTypes = methodDeclaration.thrownExceptionTypes();
+					for(Type type : thrownExceptionTypes) {
+						miv.javadocExceptions.remove(type.resolveBinding().getQualifiedName());
+					}
+				}
+				// if all others are thrown, that is fine; otherwise, if the catch clause catch a super exception, then it could suffer over catch.
+				// this strategy may cause false positive.
+				if (!miv.javadocExceptions.isEmpty() && caughtSuperException) {
+					result |= true;
+				}
+			}
+		}
+		
 		if (result) {
 			antipatternNodes.add(node);
 		}
