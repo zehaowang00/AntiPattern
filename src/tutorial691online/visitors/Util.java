@@ -48,15 +48,19 @@ public class Util {
 		@SuppressWarnings("unchecked")
 		List<TagElement> list = jDoc.tags();
 		for (TagElement tagElement : list) {
-			if (tagElement.getTagName() == null || !tagElement.getTagName().equals(TagElement.TAG_THROWS)) {
+			if (tagElement.getTagName() == null
+					|| !(tagElement.getTagName().equals(TagElement.TAG_THROWS) 
+							|| !tagElement.getTagName().equals(TagElement.TAG_EXCEPTION))) {
 				continue;
 			}
 			@SuppressWarnings("unchecked")
 			List<IDocElement> docElements = tagElement.fragments();
 			for (IDocElement docElement : docElements) {
-				SimpleName name = (SimpleName)docElement;
-				ITypeBinding binding = name.resolveTypeBinding();
-				localJavadocException.put(binding.getQualifiedName(), binding);
+				if (docElement instanceof SimpleName) {
+					SimpleName name = (SimpleName)docElement;
+					ITypeBinding binding = name.resolveTypeBinding();
+					localJavadocException.put(binding.getQualifiedName(), binding);
+				}
 			}
 		}
 		return localJavadocException;
