@@ -17,6 +17,7 @@ import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.TryStatement;
@@ -28,7 +29,12 @@ public class ThrowVisitor extends ASTVisitor{
 	private Map<String, Type> throwException = new HashMap<String, Type>();
 	private Set<String> visitedMethods; // record methods that already have been visited to prevent infinite loop for the recursive methods, i.e. methodA calls methodA
 	private Set<String> javadocExceptions = new HashSet<String>();
+	private Map<String, ITypeBinding> localJavadocExceptions = new HashMap<String,ITypeBinding>();
 	
+	public Map<String, ITypeBinding> getLocalJavadocExceptions() {
+		return localJavadocExceptions;
+	}
+
 	// to handle javadoc Exceptions
 	static Set<String> superExceptions = new HashSet<String>();
 	static {
@@ -68,7 +74,6 @@ public class ThrowVisitor extends ASTVisitor{
 		if (!this.visitedMethods.add(iMethod.toString())) {
 			return super.visit(node);
 		}
-		ThrowVisitor visitor = new ThrowVisitor(this.visitedMethods);
 		
 		CompilationUnit cu = null;
 
@@ -84,10 +89,13 @@ public class ThrowVisitor extends ASTVisitor{
 				cu = AbstractFinder.parse(icu);
 			}
 		}
+		
+		boolean hasLocalJavadoc = false;
 		if (cu != null) {
+			ThrowVisitor visitor = new ThrowVisitor(this.visitedMethods);
 			// find called methods and get all the throw Exception in method body
 			// Add the Exceptions to the set exceptionTypes
-			ASTNode methodNode = cu.findDeclaringNode(methodBinding.getKey());
+			MethodDeclaration methodNode = (MethodDeclaration)cu.findDeclaringNode(methodBinding.getKey());
 			methodNode.accept(visitor);
 			
 			ASTNode nodeParent = node.getParent();
@@ -104,6 +112,7 @@ public class ThrowVisitor extends ASTVisitor{
 				Iterator<?> iter=catchBodys.iterator();
 				Set<String> resolvedThrownExceptions = new HashSet<String>();
 				Set<String> resolvedJavadocExceptions = new HashSet<String>();
+				Set<String> resolvedLocalJavadocExceptions = new HashSet<String>();
 				while(iter.hasNext()){
 		             CatchClause catchClause = (CatchClause) iter.next();
 		             Type caughtExceptionType = catchClause.getException().getType();
@@ -112,7 +121,15 @@ public class ThrowVisitor extends ASTVisitor{
 		             for (String type : visitor.getThrowException().keySet()) {
 		            	 ITypeBinding thrownExceptionType = visitor.getThrowException().get(type).resolveBinding();
 		            	 if (thrownExceptionType.isSubTypeCompatible(caughtExceptionTypeBinding)) {
-		            		 resolvedThrownExceptions.add(catchClause.getException().getType().toString().intern());
+		            		 resolvedThrownExceptions.add(type);
+		            	 }
+		             }
+		             
+		             // check if the current catch could handle the local java doc exceptions 
+		             for (String type : visitor.getLocalJavadocExceptions().keySet()) {
+		            	 ITypeBinding localJavadocException = visitor.getLocalJavadocExceptions().get(type);
+		            	 if (localJavadocException.isSubTypeCompatible(caughtExceptionTypeBinding)) {
+		            		 resolvedLocalJavadocExceptions.add(type);
 		            	 }
 		             }
 		             
@@ -127,16 +144,25 @@ public class ThrowVisitor extends ASTVisitor{
 				for (String resolvedThrownException : resolvedThrownExceptions) {
 					visitor.getThrowException().remove(resolvedThrownException.intern());
 				}
+				for (String localJavadocException : resolvedLocalJavadocExceptions) {
+					visitor.getLocalJavadocExceptions().remove(localJavadocException);
+				}
 				visitor.getJavadocExceptions().removeAll(resolvedJavadocExceptions);
 			}
 			this.throwException.putAll(visitor.getThrowException());
 			this.javadocExceptions.addAll(visitor.javadocExceptions);
+			this.localJavadocExceptions.putAll(visitor.getLocalJavadocExceptions());
+			Map<String, ITypeBinding> localJavadocExceptions = Util.getLocalJavadocExceptions(methodNode.getJavadoc());
+			hasLocalJavadoc = localJavadocExceptions == null;
+			if (hasLocalJavadoc) {
+				this.localJavadocExceptions.putAll(localJavadocExceptions);
+			}
 		}
 		
-		if (iMethod.isBinary()){
-			this.javadocExceptions.addAll(Util.getJavadocExceptions(iMethod));
-		} else {
-			// TODO: method binding comments
+		if (!hasLocalJavadoc) {
+			if (iMethod.isBinary()){
+				this.javadocExceptions.addAll(Util.getJavadocExceptions(iMethod));
+			}
 		}
 		
 		return super.visit(node);

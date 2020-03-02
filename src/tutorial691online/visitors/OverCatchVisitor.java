@@ -10,12 +10,12 @@ import java.util.Set;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.Type;
@@ -80,6 +80,7 @@ public class OverCatchVisitor extends AbstractVisitor{
 	
 	class MethodInvocationVisitor extends ASTVisitor {
 		Map<String, Type> thrownException = new HashMap<String, Type>();
+		Map<String, ITypeBinding> localJavadocExceptions = new HashMap<String, ITypeBinding>();
 		Set<String> javadocExceptions = new HashSet<String>();
 		@Override
 		public boolean visit(MethodInvocation node) {
@@ -100,18 +101,26 @@ public class OverCatchVisitor extends AbstractVisitor{
 					cu = AbstractFinder.parse(icu);
 				}
 			}
+			boolean hasLocalJavadoc = false;
 			if (cu != null) {
-				ASTNode methodNode = cu.findDeclaringNode(methodBinding.getKey());
+				MethodDeclaration methodNode = (MethodDeclaration) cu.findDeclaringNode(methodBinding.getKey());
 				ThrowVisitor checkThrowVisitor = new ThrowVisitor(new HashSet<String>());
 				methodNode.accept(checkThrowVisitor);
 				thrownException.putAll(checkThrowVisitor.getThrowException());
 				javadocExceptions.addAll(checkThrowVisitor.getJavadocExceptions());
+				localJavadocExceptions.putAll(checkThrowVisitor.getLocalJavadocExceptions());
+				
+				Map<String, ITypeBinding> localJdocException = Util.getLocalJavadocExceptions(methodNode.getJavadoc());
+				hasLocalJavadoc = localJdocException == null;
+				if (hasLocalJavadoc) {
+					localJavadocExceptions.putAll(localJdocException);
+				}
 			}
 			
-			if (iMethod.isBinary()) {
-				javadocExceptions.addAll(Util.getJavadocExceptions(iMethod));
-			} else {
-				// TODO: method binding comments
+			if (localJavadocExceptions == null) {
+				if (iMethod.isBinary()) {
+					javadocExceptions.addAll(Util.getJavadocExceptions(iMethod));
+				}
 			}
 			return super.visit(node);
 		}
