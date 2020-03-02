@@ -111,13 +111,13 @@ public class OverCatchVisitor extends AbstractVisitor{
 				localJavadocExceptions.putAll(checkThrowVisitor.getLocalJavadocExceptions());
 				
 				Map<String, ITypeBinding> localJdocException = Util.getLocalJavadocExceptions(methodNode.getJavadoc());
-				hasLocalJavadoc = localJdocException == null;
+				hasLocalJavadoc = localJdocException != null;
 				if (hasLocalJavadoc) {
 					localJavadocExceptions.putAll(localJdocException);
 				}
 			}
 			
-			if (localJavadocExceptions == null) {
+			if (!hasLocalJavadoc) {
 				if (iMethod.isBinary()) {
 					javadocExceptions.addAll(Util.getJavadocExceptions(iMethod));
 				}

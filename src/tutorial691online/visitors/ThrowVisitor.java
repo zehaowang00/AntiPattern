@@ -97,9 +97,22 @@ public class ThrowVisitor extends ASTVisitor{
 			// Add the Exceptions to the set exceptionTypes
 			MethodDeclaration methodNode = (MethodDeclaration)cu.findDeclaringNode(methodBinding.getKey());
 			methodNode.accept(visitor);
+
+			Map<String, ITypeBinding> localJavadocExceptions = Util.getLocalJavadocExceptions(methodNode.getJavadoc());
+			hasLocalJavadoc = localJavadocExceptions != null;
+			if (hasLocalJavadoc) {
+				this.localJavadocExceptions.putAll(localJavadocExceptions);
+			}
+			if (!hasLocalJavadoc) {
+				if (iMethod.isBinary()){
+					this.javadocExceptions.addAll(Util.getJavadocExceptions(iMethod));
+				}
+			}
+			this.throwException.putAll(visitor.getThrowException());
+			this.javadocExceptions.addAll(visitor.getJavadocExceptions());
+			this.localJavadocExceptions.putAll(visitor.getLocalJavadocExceptions());
 			
 			ASTNode nodeParent = node.getParent();
-			
 			///Check whether a method is in try block
 			while(!(nodeParent.getNodeType() == ASTNode.METHOD_DECLARATION || nodeParent.getNodeType() == ASTNode.TRY_STATEMENT)) {
 				nodeParent = nodeParent.getParent();
@@ -108,17 +121,18 @@ public class ThrowVisitor extends ASTVisitor{
 			if(nodeParent.getNodeType() == ASTNode.TRY_STATEMENT) {
 				///to find out exception type in catch block 
 				TryStatement tryNode = (TryStatement) nodeParent;
-				List<?> catchBodys = tryNode.catchClauses();
-				Iterator<?> iter=catchBodys.iterator();
+				@SuppressWarnings("unchecked")
+				List<CatchClause> catchBodys = tryNode.catchClauses();
+				Iterator<CatchClause> iter = catchBodys.iterator();
 				Set<String> resolvedThrownExceptions = new HashSet<String>();
 				Set<String> resolvedJavadocExceptions = new HashSet<String>();
 				Set<String> resolvedLocalJavadocExceptions = new HashSet<String>();
 				while(iter.hasNext()){
-		             CatchClause catchClause = (CatchClause) iter.next();
+		             CatchClause catchClause = iter.next();
 		             Type caughtExceptionType = catchClause.getException().getType();
 		             ITypeBinding caughtExceptionTypeBinding = caughtExceptionType.resolveBinding();
 		             // record all thrown exceptions that will be resolved by the current catch clause
-		             for (String type : visitor.getThrowException().keySet()) {
+		             for (String type : this.throwException.keySet()) {
 		            	 ITypeBinding thrownExceptionType = visitor.getThrowException().get(type).resolveBinding();
 		            	 if (thrownExceptionType.isSubTypeCompatible(caughtExceptionTypeBinding)) {
 		            		 resolvedThrownExceptions.add(type);
@@ -126,7 +140,7 @@ public class ThrowVisitor extends ASTVisitor{
 		             }
 		             
 		             // check if the current catch could handle the local java doc exceptions 
-		             for (String type : visitor.getLocalJavadocExceptions().keySet()) {
+		             for (String type : this.localJavadocExceptions.keySet()) {
 		            	 ITypeBinding localJavadocException = visitor.getLocalJavadocExceptions().get(type);
 		            	 if (localJavadocException.isSubTypeCompatible(caughtExceptionTypeBinding)) {
 		            		 resolvedLocalJavadocExceptions.add(type);
@@ -135,7 +149,7 @@ public class ThrowVisitor extends ASTVisitor{
 		             
 		             // check if the current catch could handle the java doc exception
 		             String caughtExceptionTypeName = caughtExceptionTypeBinding.getQualifiedName();
-		             for (String jdocException : visitor.getJavadocExceptions()) {
+		             for (String jdocException : this.javadocExceptions) {
 		            	 if (jdocException.equals(caughtExceptionTypeName) || superExceptions.contains(caughtExceptionTypeName)) {
 		            		 resolvedJavadocExceptions.add(jdocException);
 		            	 }
@@ -148,20 +162,6 @@ public class ThrowVisitor extends ASTVisitor{
 					visitor.getLocalJavadocExceptions().remove(localJavadocException);
 				}
 				visitor.getJavadocExceptions().removeAll(resolvedJavadocExceptions);
-			}
-			this.throwException.putAll(visitor.getThrowException());
-			this.javadocExceptions.addAll(visitor.javadocExceptions);
-			this.localJavadocExceptions.putAll(visitor.getLocalJavadocExceptions());
-			Map<String, ITypeBinding> localJavadocExceptions = Util.getLocalJavadocExceptions(methodNode.getJavadoc());
-			hasLocalJavadoc = localJavadocExceptions == null;
-			if (hasLocalJavadoc) {
-				this.localJavadocExceptions.putAll(localJavadocExceptions);
-			}
-		}
-		
-		if (!hasLocalJavadoc) {
-			if (iMethod.isBinary()){
-				this.javadocExceptions.addAll(Util.getJavadocExceptions(iMethod));
 			}
 		}
 		
