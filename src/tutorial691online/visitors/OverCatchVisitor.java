@@ -18,8 +18,6 @@ import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.TryStatement;
-import org.eclipse.jdt.core.dom.Type;
-
 import tutorial691online.patterns.AbstractFinder;
 
 public class OverCatchVisitor extends AbstractVisitor{
@@ -55,8 +53,7 @@ public class OverCatchVisitor extends AbstractVisitor{
 		// if over catch unchecked exceptions
 		if (!result) {
 			for (String exceptionName : miv.thrownException.keySet()) {
-				Type type = miv.thrownException.get(exceptionName);
-				ITypeBinding typeBinding = type.resolveBinding();
+				ITypeBinding typeBinding = miv.thrownException.get(exceptionName);
 				for (CatchClause cc : catches) {
 					ITypeBinding catchedException = cc.getException().getType().resolveBinding();
 					// nested if means it finds a caught exception that is the super class of thrown Exception
@@ -79,7 +76,7 @@ public class OverCatchVisitor extends AbstractVisitor{
 	}
 	
 	class MethodInvocationVisitor extends ASTVisitor {
-		Map<String, Type> thrownException = new HashMap<String, Type>();
+		Map<String, ITypeBinding> thrownException = new HashMap<String, ITypeBinding>();
 		Map<String, ITypeBinding> localJavadocExceptions = new HashMap<String, ITypeBinding>();
 		Set<String> javadocExceptions = new HashSet<String>();
 		@Override

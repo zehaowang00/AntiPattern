@@ -19,6 +19,7 @@ import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.Type;
@@ -26,7 +27,7 @@ import tutorial691online.patterns.AbstractFinder;
 
 public class ThrowVisitor extends ASTVisitor{
 	
-	private Map<String, Type> throwException = new HashMap<String, Type>();
+	private Map<String, ITypeBinding> throwException = new HashMap<String, ITypeBinding>();
 	private Set<String> visitedMethods; // record methods that already have been visited to prevent infinite loop for the recursive methods, i.e. methodA calls methodA
 	private Set<String> javadocExceptions = new HashSet<String>();
 	private Map<String, ITypeBinding> localJavadocExceptions = new HashMap<String,ITypeBinding>();
@@ -46,7 +47,7 @@ public class ThrowVisitor extends ASTVisitor{
 		this.visitedMethods = visitedMethods;
 	}
 
-	public Map<String, Type> getThrowException() {
+	public Map<String, ITypeBinding> getThrowException() {
 		return throwException;
 	}
 	
@@ -59,7 +60,15 @@ public class ThrowVisitor extends ASTVisitor{
 		node.accept(new ASTVisitor() {
 			@Override
 			public boolean visit(ClassInstanceCreation cic) {
-				throwException.put(cic.getType().toString().intern(), cic.getType());
+				ITypeBinding typeBinding = cic.getType().resolveBinding();
+				throwException.put(typeBinding.getQualifiedName(), typeBinding);
+				return super.visit(node);
+			}
+
+			@Override
+			public boolean visit(SimpleName name) {
+				ITypeBinding typeBinding = name.resolveTypeBinding();
+				throwException.put(typeBinding.getQualifiedName(), typeBinding);
 				return super.visit(node);
 			}
 		});
@@ -133,7 +142,7 @@ public class ThrowVisitor extends ASTVisitor{
 		             ITypeBinding caughtExceptionTypeBinding = caughtExceptionType.resolveBinding();
 		             // record all thrown exceptions that will be resolved by the current catch clause
 		             for (String type : this.throwException.keySet()) {
-		            	 ITypeBinding thrownExceptionType = visitor.getThrowException().get(type).resolveBinding();
+		            	 ITypeBinding thrownExceptionType = this.throwException.get(type);
 		            	 if (thrownExceptionType.isSubTypeCompatible(caughtExceptionTypeBinding)) {
 		            		 resolvedThrownExceptions.add(type);
 		            	 }
@@ -141,7 +150,7 @@ public class ThrowVisitor extends ASTVisitor{
 		             
 		             // check if the current catch could handle the local java doc exceptions 
 		             for (String type : this.localJavadocExceptions.keySet()) {
-		            	 ITypeBinding localJavadocException = visitor.getLocalJavadocExceptions().get(type);
+		            	 ITypeBinding localJavadocException = this.localJavadocExceptions.get(type);
 		            	 if (localJavadocException.isSubTypeCompatible(caughtExceptionTypeBinding)) {
 		            		 resolvedLocalJavadocExceptions.add(type);
 		            	 }
