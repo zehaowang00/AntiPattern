@@ -165,8 +165,9 @@ public class OverCatchVisitor extends AbstractVisitor{
 			}
 			boolean hasLocalJavadoc = false;
 			if (cu != null) {
-				MethodDeclaration methodNode = (MethodDeclaration) cu.findDeclaringNode(methodBinding.getKey());
-				if (methodNode != null) {
+				ASTNode astNode = cu.findDeclaringNode(methodBinding.getKey());
+				if (astNode != null && astNode.getNodeType() == ASTNode.METHOD_DECLARATION) {
+					MethodDeclaration methodNode = (MethodDeclaration) astNode;
 					ThrowVisitor checkThrowVisitor = new ThrowVisitor(new HashSet<String>());
 					methodNode.accept(checkThrowVisitor);
 					thrownException.putAll(checkThrowVisitor.getThrowException());
