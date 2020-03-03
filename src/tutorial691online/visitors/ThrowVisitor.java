@@ -141,9 +141,12 @@ public class ThrowVisitor extends ASTVisitor{
 			///Check whether a method is in try block
 			while(!(nodeParent.getNodeType() == ASTNode.METHOD_DECLARATION || nodeParent.getNodeType() == ASTNode.TRY_STATEMENT)) {
 				nodeParent = nodeParent.getParent();
+				if (nodeParent == null) {
+					break;
+				}
 			}
 			
-			if(nodeParent.getNodeType() == ASTNode.TRY_STATEMENT) {
+			if(nodeParent != null && nodeParent.getNodeType() == ASTNode.TRY_STATEMENT) {
 				///to find out exception type in catch block 
 				TryStatement tryNode = (TryStatement) nodeParent;
 				@SuppressWarnings("unchecked")
