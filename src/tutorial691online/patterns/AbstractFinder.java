@@ -20,6 +20,7 @@ import tutorial691online.visitors.AbstractVisitor;
 public class AbstractFinder {
 
 	HashMap<MethodDeclaration, String> suspectMethods = new HashMap<>();
+	HashMap<ASTNode, String> suspectNodes = new HashMap<>();
 	String type;
 	AbstractVisitor visitor;
 
@@ -42,6 +43,9 @@ public class AbstractFinder {
 	
 	protected MethodDeclaration findParentMethodDeclaration(ASTNode node) {
 		if(node.getParent().getNodeType() == ASTNode.METHOD_DECLARATION) {
+			if (node.getParent() == null) {
+				return null;
+			}
 			return (MethodDeclaration)node.getParent();
 		} else {
 			return findParentMethodDeclaration(node.getParent());
@@ -58,7 +62,12 @@ public class AbstractFinder {
 	
 	protected void getAntipatternMethods() {
 		for(ASTNode antipatternNode : this.visitor.getAntipatternNodes()) {
-			suspectMethods.put(findParentMethodDeclaration(antipatternNode), this.type);
+			MethodDeclaration methodDec = findParentMethodDeclaration(antipatternNode);
+			if (methodDec != null) {
+				suspectMethods.put(methodDec, this.type);
+			} else {
+				suspectNodes.put(antipatternNode, this.type);
+			}
 		}
 	}
 	
