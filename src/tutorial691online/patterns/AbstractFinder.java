@@ -82,7 +82,13 @@ public class AbstractFinder {
 		parser.setResolveBindings(true);
 		parser.setBindingsRecovery(true);
 		parser.setStatementsRecovery(true);
-		return (CompilationUnit) parser.createAST(null); // parse
+		CompilationUnit cu = null;
+		try {
+			cu = (CompilationUnit) parser.createAST(null);
+		} catch (IllegalStateException e) {
+			return null;
+		}
+		return cu; // parse
 	}
 
 	public static CompilationUnit parse(ICompilationUnit unit) {
