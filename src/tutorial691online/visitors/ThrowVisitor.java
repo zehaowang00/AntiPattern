@@ -102,7 +102,11 @@ public class ThrowVisitor extends ASTVisitor{
 		if (iMethod.isBinary()) {
 			IClassFile icf = iMethod.getClassFile();
 			if (icf != null) {
-				cu = AbstractFinder.parse(icf);
+				try {
+					cu = AbstractFinder.parse(icf);
+				} catch (IllegalStateException e) {
+					cu = null;
+				}
 			}
 		} else {
 			ICompilationUnit icu = iMethod.getCompilationUnit();

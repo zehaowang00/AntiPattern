@@ -26,7 +26,9 @@ public class AbstractFinder {
 
 	public void findExceptions(IProject project) throws JavaModelException {
 		IPackageFragment[] packages = JavaCore.create(project).getPackageFragments();
+		int i = 0;
 		for(IPackageFragment mypackage : packages){
+			System.out.println("package " + ++i);
 			findTarget(mypackage);
 		}
 	}
@@ -42,13 +44,14 @@ public class AbstractFinder {
 	}	
 	
 	protected MethodDeclaration findParentMethodDeclaration(ASTNode node) {
-		if(node.getParent().getNodeType() == ASTNode.METHOD_DECLARATION) {
-			if (node.getParent() == null) {
-				return null;
+		try {
+			if(node.getParent().getNodeType() == ASTNode.METHOD_DECLARATION) {
+				return (MethodDeclaration)node.getParent();
+			} else {
+				return findParentMethodDeclaration(node.getParent());
 			}
-			return (MethodDeclaration)node.getParent();
-		} else {
-			return findParentMethodDeclaration(node.getParent());
+		} catch (NullPointerException e) {
+			return null;
 		}
 	}
 	

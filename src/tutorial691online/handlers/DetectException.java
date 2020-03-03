@@ -62,6 +62,7 @@ public class DetectException extends AbstractHandler {
 	private void detectInProjects(IProject[] projects) {
 		for(IProject project : projects) {
 			printMessage("DETECTING IN: " + project.getName());
+			System.out.println(project.getName());
 
 			NestedTryFinder nestedTry = new NestedTryFinder();
 			DestructiveWrappingFinder destructiveWrapping = new DestructiveWrappingFinder();
