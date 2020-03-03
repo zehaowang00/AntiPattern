@@ -25,13 +25,15 @@ public class Util {
 			if (javadocStr != null) {
 				Document javadoc = Jsoup.parse(javadocStr);
 				Element throwsLabel = javadoc.selectFirst("dt span:matches([Tt]hrows)");
-				Element dd = throwsLabel.parent().nextElementSibling();
-				while(dd != null) {
-					Element a = dd.selectFirst("code a");
-					String cls = a.text();
-					String pkg = a.attr("title").split(" ")[2];
-					javadocExceptions.add(pkg + "." + cls);
-					dd = dd.nextElementSibling();
+				if (throwsLabel != null) {
+					Element dd = throwsLabel.parent().nextElementSibling();
+					while(dd != null && dd.tagName().equals("dd")) {
+						Element a = dd.selectFirst("code a");
+						String cls = a.text();
+						String pkg = a.attr("title").split(" ")[2];
+						javadocExceptions.add(pkg + "." + cls);
+						dd = dd.nextElementSibling();
+					}
 				}
 			}
 		} catch (JavaModelException e) {

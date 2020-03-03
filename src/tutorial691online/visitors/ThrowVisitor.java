@@ -83,6 +83,9 @@ public class ThrowVisitor extends ASTVisitor{
 			return super.visit(node);
 		}
 		IMethod iMethod = (IMethod) methodBinding.getJavaElement();
+		if (iMethod == null) {
+			return super.visit(node);
+		}
 		if (!this.visitedMethods.add(iMethod.toString())) {
 			return super.visit(node);
 		}

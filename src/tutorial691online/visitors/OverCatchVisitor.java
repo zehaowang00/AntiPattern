@@ -30,10 +30,13 @@ public class OverCatchVisitor extends AbstractVisitor{
 	// check if there are not equal but sub-type compatible cases
 	@Override
 	public boolean visit(TryStatement node) {
-		MethodInvocationVisitor miv = new MethodInvocationVisitor();
-		node.getBody().accept(miv);
 		@SuppressWarnings("unchecked")
 		List<CatchClause> catches = node.catchClauses();
+		if (catches == null || catches.isEmpty()) {
+			return super.visit(node);
+		}
+		MethodInvocationVisitor miv = new MethodInvocationVisitor();
+		node.getBody().accept(miv);
 		boolean result = false;
 		
 		// if over catch checked exceptions
@@ -163,16 +166,18 @@ public class OverCatchVisitor extends AbstractVisitor{
 			boolean hasLocalJavadoc = false;
 			if (cu != null) {
 				MethodDeclaration methodNode = (MethodDeclaration) cu.findDeclaringNode(methodBinding.getKey());
-				ThrowVisitor checkThrowVisitor = new ThrowVisitor(new HashSet<String>());
-				methodNode.accept(checkThrowVisitor);
-				thrownException.putAll(checkThrowVisitor.getThrowException());
-				javadocExceptions.addAll(checkThrowVisitor.getJavadocExceptions());
-				localJavadocExceptions.putAll(checkThrowVisitor.getLocalJavadocExceptions());
-				
-				Map<String, ITypeBinding> localJdocException = Util.getLocalJavadocExceptions(methodNode.getJavadoc());
-				hasLocalJavadoc = localJdocException != null;
-				if (hasLocalJavadoc) {
-					localJavadocExceptions.putAll(localJdocException);
+				if (methodNode != null) {
+					ThrowVisitor checkThrowVisitor = new ThrowVisitor(new HashSet<String>());
+					methodNode.accept(checkThrowVisitor);
+					thrownException.putAll(checkThrowVisitor.getThrowException());
+					javadocExceptions.addAll(checkThrowVisitor.getJavadocExceptions());
+					localJavadocExceptions.putAll(checkThrowVisitor.getLocalJavadocExceptions());
+					
+					Map<String, ITypeBinding> localJdocException = Util.getLocalJavadocExceptions(methodNode.getJavadoc());
+					hasLocalJavadoc = localJdocException != null;
+					if (hasLocalJavadoc) {
+						localJavadocExceptions.putAll(localJdocException);
+					}
 				}
 			}
 			
