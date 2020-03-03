@@ -61,7 +61,9 @@ public class Util {
 				if (docElement instanceof SimpleName) {
 					SimpleName name = (SimpleName)docElement;
 					ITypeBinding binding = name.resolveTypeBinding();
-					localJavadocException.put(binding.getQualifiedName(), binding);
+					if (binding != null) {
+						localJavadocException.put(binding.getQualifiedName(), binding);
+					}
 				}
 			}
 		}
