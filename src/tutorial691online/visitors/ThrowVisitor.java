@@ -61,6 +61,9 @@ public class ThrowVisitor extends ASTVisitor{
 			@Override
 			public boolean visit(ClassInstanceCreation cic) {
 				ITypeBinding typeBinding = cic.getType().resolveBinding();
+				if (typeBinding == null) {
+					return super.visit(node);
+				}
 				throwException.put(typeBinding.getQualifiedName(), typeBinding);
 				return super.visit(node);
 			}
@@ -68,6 +71,9 @@ public class ThrowVisitor extends ASTVisitor{
 			@Override
 			public boolean visit(SimpleName name) {
 				ITypeBinding typeBinding = name.resolveTypeBinding();
+				if (typeBinding == null) {
+					return super.visit(node);
+				}
 				throwException.put(typeBinding.getQualifiedName(), typeBinding);
 				return super.visit(node);
 			}
@@ -110,11 +116,11 @@ public class ThrowVisitor extends ASTVisitor{
 			ThrowVisitor visitor = new ThrowVisitor(this.visitedMethods);
 			// find called methods and get all the throw Exception in method body
 			// Add the Exceptions to the set exceptionTypes
-			MethodDeclaration methodNode = (MethodDeclaration)cu.findDeclaringNode(methodBinding.getKey());
-			if (methodNode == null) {
+			ASTNode astNode = cu.findDeclaringNode(methodBinding.getKey());
+			if (astNode == null || astNode.getNodeType() != ASTNode.METHOD_DECLARATION) {
 				return super.visit(node);
 			}
-			
+			MethodDeclaration methodNode = (MethodDeclaration) astNode;
 			methodNode.accept(visitor);
 
 			Map<String, ITypeBinding> localJavadocExceptions = Util.getLocalJavadocExceptions(methodNode.getJavadoc());

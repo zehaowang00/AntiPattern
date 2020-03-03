@@ -76,12 +76,9 @@ public class DetectException extends AbstractHandler {
 				nestedTry.printExceptions();
 				overCatchFinder.findExceptions(project);
 				overCatchFinder.printExceptions();
-				
-	
 			} catch (JavaModelException e) {
 				e.printStackTrace();
 			}
-			
-	}
+		}
 	}
 }
