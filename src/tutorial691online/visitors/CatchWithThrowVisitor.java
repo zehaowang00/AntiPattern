@@ -41,17 +41,10 @@ public class CatchWithThrowVisitor extends AbstractVisitor {
 							}
 							if(!isGood) {
 								antipatternNodes.add(node);
+								System.out.println("first");
 							}
 							return super.visit(node);
 						}
-					   @Override
-					public boolean visit(SimpleName nameNode) {
-						 if(!nameNode.toString().equalsIgnoreCase(variableName)) {
-							 antipatternNodes.add(nameNode);
-						 }
-						// TODO Auto-generated method stub
-						return super.visit(nameNode);
-					}
 					});
 					
 					return super.visit(node);
