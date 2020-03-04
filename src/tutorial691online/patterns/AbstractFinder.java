@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jdt.core.IClassFile;
@@ -46,6 +47,11 @@ public class AbstractFinder {
 			//do method visit here and check stuff
 			parsedCompilationUnit.accept(this.visitor);
 			getAntipatternMethods();
+			try {
+				this.visitor = this.visitor.getClass().newInstance();
+			} catch (InstantiationException | IllegalAccessException e) {
+				e.printStackTrace();
+			}
 		}
 	}	
 	
@@ -70,7 +76,8 @@ public class AbstractFinder {
 	}
 	
 	protected void getAntipatternMethods() {
-		for(ASTNode antipatternNode : this.visitor.getAntipatternNodes()) {
+		Set<ASTNode> antiPatternNodes = this.visitor.getAntipatternNodes();
+		for(ASTNode antipatternNode : antiPatternNodes) {
 			this.total++;
 			MethodDeclaration methodDec = findParentMethodDeclaration(antipatternNode);
 			if (methodDec != null) {
