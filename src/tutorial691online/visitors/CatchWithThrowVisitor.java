@@ -9,14 +9,14 @@ public class CatchWithThrowVisitor extends AbstractVisitor {
 	@Override
 	public boolean visit(CatchClause node) {		
 		///important logic    
-		//1.找到每个catch中exception类型 
-		//2. 找到catchblock中包含new exception 
-		//3. 判断是否相同 
-		//4.如果相同加入
+		//1. find out every exception type in catch block  
+		//2. find out new exception in throw or variable 
+		//3. whether same  
 		
 		if (node.getException()!=null) {
 			String exceptionType = node.getException().getType().toString();
-//			System.out.println("exceptionType:"+exceptionType);
+			String variableName = node.getException().getName().toString();
+			System.out.println("variable:"+variableName);
 			node.getBody().accept(new ASTVisitor(){
 				
 				public boolean visit(ThrowStatement ts) {
