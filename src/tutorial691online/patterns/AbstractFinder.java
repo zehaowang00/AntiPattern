@@ -1,5 +1,8 @@
 package tutorial691online.patterns;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 
 import org.eclipse.core.resources.IProject;
@@ -23,8 +26,11 @@ public class AbstractFinder {
 	HashMap<ASTNode, String> suspectNodes = new HashMap<>();
 	String type;
 	AbstractVisitor visitor;
+	String projectName;
+	int total = 0;
 
 	public void findExceptions(IProject project) throws JavaModelException {
+		projectName = project.getName();
 		IPackageFragment[] packages = JavaCore.create(project).getPackageFragments();
 		int i = 0;
 		for(IPackageFragment mypackage : packages){
@@ -65,11 +71,24 @@ public class AbstractFinder {
 	
 	protected void getAntipatternMethods() {
 		for(ASTNode antipatternNode : this.visitor.getAntipatternNodes()) {
+			this.total++;
 			MethodDeclaration methodDec = findParentMethodDeclaration(antipatternNode);
 			if (methodDec != null) {
 				suspectMethods.put(methodDec, this.type);
+				try {
+					writeFileContent("/home/bo/projects/AntiPattern/data/" + this.projectName + "-" + this.type, 
+							"case " + this.total + "\n" + methodDec.toString() + "\n*****\n", true);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			} else {
 				suspectNodes.put(antipatternNode, this.type);
+				try {
+					writeFileContent("/home/bo/projects/AntiPattern/data/" + this.projectName + "-" + this.type, 
+							"case " + this.total + "\n" + antipatternNode.toString() + "\n*****\n", true);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
@@ -100,5 +119,14 @@ public class AbstractFinder {
 		parser.setBindingsRecovery(true);
 		parser.setStatementsRecovery(true);
 		return (CompilationUnit) parser.createAST(null); // parse
+	}
+
+	public static void writeFileContent(String path, String content, boolean append) throws IOException {
+		File f = new File(path);
+		f.getParentFile().mkdirs();
+		FileWriter writer = new FileWriter(f, append);
+		writer.write(content);
+		writer.flush();
+		writer.close();
 	}
 }

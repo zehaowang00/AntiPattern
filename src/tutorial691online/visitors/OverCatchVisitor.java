@@ -141,7 +141,6 @@ public class OverCatchVisitor extends AbstractVisitor{
 		public boolean visit(MethodInvocation node) {
 			IMethodBinding methodBinding = node.resolveMethodBinding();
 			if (methodBinding == null) {
-				System.out.println(methodBinding);
 				return super.visit(node);
 			}
 			for(ITypeBinding typeBinding : methodBinding.getExceptionTypes()) {
