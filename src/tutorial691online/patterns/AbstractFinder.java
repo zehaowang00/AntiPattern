@@ -85,6 +85,8 @@ public class AbstractFinder {
 				try {
 					writeFileContent("/home/bo/projects/AntiPattern/data/" + this.projectName + "-" + this.type, 
 							"case " + this.total + "\n" + methodDec.toString() + "\n*****\n", true);
+//					writeFileContent("/Users/mac/Documents/AntiPatternData/data/" + this.projectName + "-" + this.type, 
+//							"case " + this.total + "\n" + methodDec.toString() + "\n*****\n", true);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -93,6 +95,8 @@ public class AbstractFinder {
 				try {
 					writeFileContent("/home/bo/projects/AntiPattern/data/" + this.projectName + "-" + this.type, 
 							"case " + this.total + "\n" + antipatternNode.toString() + "\n*****\n", true);
+//					writeFileContent("/Users/mac/Documents/AntiPatternData/data/" + this.projectName + "-" + this.type, 
+//							"case " + this.total + "\n" + antipatternNode.toString() + "\n*****\n", true);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
